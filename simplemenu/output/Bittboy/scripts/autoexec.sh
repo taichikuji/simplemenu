@@ -1,5 +1,6 @@
 #!/bin/sh
-# If you are planning on connecting the v90's SD Card onto a MacOS device, uncomment the following line:
-#find /mnt/ -name '._*' -exec rm -v {} \;
+if find /mnt/.simplemenu -name '._*' -print -quit >/dev/null; then
+    find /mnt/.simplemenu -name '._*' -exec rm -v {} \;
+fi
 cd /mnt/apps/simplemenu
 ./simplemenu
