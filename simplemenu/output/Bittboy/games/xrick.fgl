@@ -1,2 +1,3 @@
 title=xrick
-exec=/mnt/games/xrick/xrick
+description=xrick libretro core
+exec=/mnt/emus/retroarch/xrick.sh

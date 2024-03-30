@@ -1,5 +1,3 @@
 title=Cave Story
-description=Platformer game
-exec=/mnt/games/cavestory/nx
-clock=702
-selectorbrowser=true
+description=Metroidvania NXEngine game (libretro core)
+exec=/mnt/emus/retroarch/nxengine.sh

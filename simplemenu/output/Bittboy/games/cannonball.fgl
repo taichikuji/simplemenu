@@ -1,5 +1,3 @@
-title=Cannonball
-description=Outrun engine
-exec=/mnt/games/cannonball/cannonball
-clock=702
-selectorbrowser=true
+title=cannonball
+description=cannonball libretro core
+exec=/mnt/emus/retroarch/cannonball.sh
