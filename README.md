@@ -54,7 +54,8 @@ To build SimpleMenu, you'll need:
    ```
 
 3. **Build output:**
-   - The compiled binary will be in `output/simplemenu`
+   - The compiled binary will be at `output/simplemenu`
+   - The deployment files (binary + configs + resources) are pre-organized in `output/Bittboy/`
    - This single binary works on both Powkiddy V90 and Bittboy v3.5
 
 ---
@@ -145,14 +146,15 @@ This fork is based on [fgl82/simplemenu](https://github.com/fgl82/simplemenu). F
 For quick builds, you can use the provided build script:
 
 ```bash
-cd simplemenu/output
+# From the repository root:
+cd simplemenu/simplemenu/output
 ./make_bittboy.sh
 ```
 
 This script automatically:
 - Cleans previous builds
 - Compiles with PLATFORM=BITTBOY
-- Copies binary to mounted device (if configured)
+- Copies binary to mounted device (if configured in the script)
 
 ---
 
