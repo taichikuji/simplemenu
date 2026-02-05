@@ -1,6 +1,6 @@
-# SimpleMenu 🎮
+# SimpleMenu
 
-A minimalistic, practical, lean and efficient menu to enhance handheld gaming devices.
+An alternative launcher over stock, made to be simple.
 
 ## About SimpleMenu
 
@@ -15,23 +15,17 @@ A minimalistic, practical, lean and efficient menu to enhance handheld gaming de
 - <span style="color:red">**N**</span>ew Bittboys'
 - <span style="color:red">**U**</span>sability 
 
-This fork is specifically configured for the **Powkiddy V90** and **Bittboy v3.5** handheld gaming devices. Both devices share the same hardware architecture (Allwinner F1C100s ARM processor) and run MiyooCFW firmware, making them binary-compatible.
-
 ---
 
 ## Building SimpleMenu for Powkiddy V90 and Bittboy v3.5
 
-### Understanding the Hardware
+As this fork, based on [fgl82/simplemenu](https://github.com/fgl82/simplemenu), targets Powkiddy v90, most of the work was done targetting that specific layout, and hardware.
 
-Both the Powkiddy V90 and Bittboy v3.5 devices:
-- Use the **Allwinner F1C100s** ARM-based processor (not MIPS)
-- Run **MiyooCFW** firmware
-- Use the **same compiled binary** - no separate builds needed
-- Differ only in **button mappings** due to form factor differences (V90 is clamshell, Bittboy is candybar)
+However, as Bittboy v3.5 is quite similar, only changing the layout ( binary built stays the same ), both are supported.
 
 ### Prerequisites
 
-To build SimpleMenu, you'll need:
+To build SimpleMenu for development, you'll need:
 
 - **Linux environment** (or WSL on Windows)
 - **ARM toolchain**: `arm-linux-musleabi-gcc` or `arm-buildroot-linux-musleabi-gcc`
@@ -110,37 +104,7 @@ To build SimpleMenu, you'll need:
 
 ---
 
-## Device Comparison
-
-| Feature | Powkiddy V90 | Bittboy v3.5 |
-|---------|-------------|--------------|
-| **Architecture** | ARM (Allwinner F1C100s) | ARM (Allwinner F1C100s) |
-| **Firmware** | MiyooCFW | MiyooCFW |
-| **Binary** | `output/simplemenu` | `output/simplemenu` |
-| **Build Command** | `make PLATFORM=BITTBOY` | `make PLATFORM=BITTBOY` |
-| **Form Factor** | Clamshell (GBA SP style) | Candybar |
-| **Config File** | Modified button mappings | Default button mappings |
-| **Deployment Path** | `apps/simplemenu/` on SD card → `/mnt/apps/simplemenu/` on device | `apps/simplemenu/` on SD card → `/mnt/apps/simplemenu/` on device |
-
----
-
 ## Development Workflow
-
-### Working with Upstream
-
-This fork is based on [fgl82/simplemenu](https://github.com/fgl82/simplemenu). For general development:
-
-1. **Feature development:**
-   - Contribute features to upstream `fgl82/simplemenu`
-   - Keep this fork focused on V90-specific configurations
-
-2. **Testing on V90:**
-   - Use this fork's pre-configured `config.ini` for V90 testing
-   - Validate button mappings work correctly on clamshell form factor
-
-3. **Syncing changes:**
-   - Regularly merge upstream changes
-   - Preserve V90-specific button configurations
 
 ### Build Script
 
@@ -161,44 +125,7 @@ This script automatically:
 
 ## Troubleshooting
 
-### Buttons don't respond on Powkiddy V90
-
-**Symptom:** Buttons work inconsistently or not at all on V90
-
-**Solution:**
-- Verify you're using the V90-specific `config.ini` from this fork
-- The V90's clamshell design requires different button mappings
-- Check `/mnt/apps/simplemenu/config/config.ini` on the device (or `apps/simplemenu/config/config.ini` on your SD card)
-- Compare with `configs/bittboy/config/config.ini` in this repository
-
-### Binary won't run on device
-
-**Symptom:** SimpleMenu doesn't launch or crashes immediately
-
-**Solution:**
-- Ensure you're using MiyooCFW firmware (not stock firmware)
-- Verify the binary was compiled with the correct toolchain
-- Check file permissions: `chmod +x simplemenu`
-- Try rebuilding: `make clean && make PLATFORM=BITTBOY`
-
-### Compile errors
-
-**Symptom:** Build fails with "command not found" or linker errors
-
-**Solution:**
-- Verify ARM toolchain is installed: `which arm-buildroot-linux-musleabi-gcc`
-- Add toolchain to PATH: `export PATH=/opt/bittboy-toolchain/bin:$PATH`
-- Install required libraries: SDL, SDL_image, SDL_ttf, etc.
-- Check Makefile for correct toolchain path
-
-### Wrong architecture error
-
-**Symptom:** Binary compiled for wrong architecture (e.g., MIPS instead of ARM)
-
-**Solution:**
-- Both V90 and Bittboy are ARM-based (Allwinner F1C100s)
-- Use `PLATFORM=BITTBOY` not `PLATFORM=RFW` or other MIPS platforms
-- Verify toolchain: `arm-buildroot-linux-musleabi-gcc --version`
+Go to [simplemenu's wiki](https://github.com/taichikuji/simplemenu/wiki) for additional information about this.
 
 ---
 
