@@ -45,8 +45,7 @@ char *replaceWord(const char *s, const char *oldW, const char *newW) {
 }
 
 char *toLower (char* string) {
-	char *copy = malloc(strlen(string) + 1);
-	if (copy == NULL) return NULL;
+	char *copy = malloc(2000);
 	strcpy(copy, string);
 	for(int i=0;copy[i]; i++) {
 		copy[i] = tolower(copy[i]);
@@ -55,8 +54,7 @@ char *toLower (char* string) {
 }
 
 char *toUpper (char* string) {
-	char *copy = malloc(strlen(string) + 1);
-	if (copy == NULL) return NULL;
+	char *copy = malloc(2000);
 	strcpy(copy, string);
 	for(int i=0;copy[i]; i++) {
 		copy[i] = toupper(copy[i]);

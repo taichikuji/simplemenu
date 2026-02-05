@@ -585,28 +585,26 @@ void createConfigFilesInHomeIfTheyDontExist() {
 	snprintf(pathToTempFiles,sizeof(pathToTempFiles),"%s/.simplemenu/tmp",home);
 	int directoryExists=mkdir(pathToConfigFiles,0700);
 	if (!directoryExists) {
-		char destPath[1024];
-		/* Use safe copy function instead of system() calls */
-		snprintf(destPath, sizeof(destPath), "%s/.simplemenu", home);
-		int ret = safeCopyDirectory("config", destPath);
-		if (ret == -1) {
-			generateError("FATAL ERROR: Failed to copy config", 1);
+		char copyCommand[5000];
+		snprintf(copyCommand,sizeof(copyCommand),"cp config/* %s/.simplemenu",home);
+		int ret = system(copyCommand);
+		if (ret==-1) {
+			generateError("FATAL ERROR", 1);
 		}
-		
+		char copyAppsCommand[5000];
 		mkdir(pathToAppFiles,0700);
-		snprintf(destPath, sizeof(destPath), "%s/.simplemenu/apps", home);
-		ret = safeCopyDirectory("apps", destPath);
-		if (ret == -1) {
-			generateError("FATAL ERROR: Failed to copy apps", 1);
+		snprintf(copyAppsCommand,sizeof(copyAppsCommand),"cp apps %s/.simplemenu",home);
+		ret = system(copyAppsCommand);
+		if (ret==-1) {
+			generateError("FATAL ERROR", 1);
 		}
-		
+		char copyGamesCommand[5000];
 		mkdir(pathToGameFiles,0700);
-		snprintf(destPath, sizeof(destPath), "%s/.simplemenu/games", home);
-		ret = safeCopyDirectory("games", destPath);
-		if (ret == -1) {
-			generateError("FATAL ERROR: Failed to copy games", 1);
+		snprintf(copyGamesCommand,sizeof(copyGamesCommand),"cp games %s/.simplemenu",home);
+		ret = system(copyGamesCommand);
+		if (ret==-1) {
+			generateError("FATAL ERROR", 1);
 		}
-		
 //		char copyThemesCommand[5000];
 //		mkdir(pathToThemeFiles,0700);
 //		snprintf(copyThemesCommand,sizeof(copyThemesCommand),"cp -r themes %s/.simplemenu",home);
@@ -614,16 +612,13 @@ void createConfigFilesInHomeIfTheyDontExist() {
 //		if (ret==-1) {
 //			generateError("FATAL ERROR", 1);
 //		}
-		
+		char copySectionGroupsCommand[5000];
 		mkdir(pathToSectionGroupsFiles,0700);
-		snprintf(destPath, sizeof(destPath), "%s/.simplemenu/section_groups", home);
-		ret = safeCopyDirectory("section_groups", destPath);
-		if (ret == -1) {
-			generateError("FATAL ERROR: Failed to copy section_groups", 1);
+		snprintf(copySectionGroupsCommand,sizeof(copySectionGroupsCommand),"cp -r section_groups %s/.simplemenu",home);
+		ret = system(copySectionGroupsCommand);
+		if (ret==-1) {
+			generateError("FATAL ERROR", 1);
 		}
-		
-		/* Execute scripts - these are from our own codebase, not user input, so safer
-		 * TODO: Consider replacing with direct function calls in future refactoring */
 		ret = system("scripts/consoles.sh");
 		if (ret==-1) {
 			generateError("FATAL ERROR", 1);

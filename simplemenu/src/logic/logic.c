@@ -9,7 +9,7 @@
 #include <string.h>
 #include <time.h>
 #include <stdio.h>
-#include <opk.h>
+#include </home/bittboy/git/libopk/opk.h>
 
 #include <sys/ioctl.h>
 #if defined(TARGET_NPG) || defined(TARGET_OD) || defined TARGET_OD_BETA
@@ -105,42 +105,32 @@ int getOPK(char *package_path, struct OPKDesktopFile *desktopFiles) {
 		if (opk_open_metadata(opk, &metadata_name) <= 0) {
 			break;
 		}
-		strncpy(desktopFiles[i].parentOPK, package_path, sizeof(desktopFiles[i].parentOPK) - 1);
-		desktopFiles[i].parentOPK[sizeof(desktopFiles[i].parentOPK) - 1] = '\0';
-		strncpy(desktopFiles[i].name, metadata_name, sizeof(desktopFiles[i].name) - 1);
-		desktopFiles[i].name[sizeof(desktopFiles[i].name) - 1] = '\0';
+		strcpy(desktopFiles[i].parentOPK, package_path);
+		strcpy(desktopFiles[i].name, metadata_name);
 		const char *key = NULL;
 		const char *val = NULL;
 		size_t skey, sval;
 		while (opk_read_pair(opk, &key, &skey, &val, &sval) && key) {
 			if (!strncmp(key, "Name", skey)) {
 				name = malloc((int) sval + 1);
-				if (name != NULL) {
-					strncpy(name, val, (int) sval);
-					name[sval] = '\0';
-					strncpy(desktopFiles[i].displayName, name, sizeof(desktopFiles[i].displayName) - 1);
-					desktopFiles[i].displayName[sizeof(desktopFiles[i].displayName) - 1] = '\0';
-					free(name);
-				}
+				strncpy(name, val, (int) sval);
+				name[sval] = '\0';
+				strcpy(desktopFiles[i].displayName, name);
+				free(name);
 			}
 			if (!strncmp(key, "Categories", skey)) {
 				category = malloc((int) sval + 1);
-				if (category != NULL) {
-					strncpy(category, val, (int) sval);
-					category[sval] = '\0';
-					strncpy(desktopFiles[i].category, category, sizeof(desktopFiles[i].category) - 1);
-					desktopFiles[i].category[sizeof(desktopFiles[i].category) - 1] = '\0';
-					free(category);
-				}
+				strncpy(category, val, (int) sval);
+				category[sval] = '\0';
+				strcpy(desktopFiles[i].category, category);
+				free(category);
 			}
 			if (!strncmp(key, "Terminal", skey)) {
 				terminal = malloc((int) sval + 1);
-				if (terminal != NULL) {
-					strncpy(terminal, val, (int) sval);
-					terminal[sval] = '\0';
-					desktopFiles[i].isConsoleApp = strcmp(terminal, "false");
-					free(terminal);
-				}
+				strncpy(terminal, val, (int) sval);
+				terminal[sval] = '\0';
+				desktopFiles[i].isConsoleApp = strcmp(terminal, "false");
+				free(terminal);
 			}
 		}
 		i++;

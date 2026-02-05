@@ -14,12 +14,12 @@ hashtable_t *ht_create( int size ) {
 
 	/* Allocate the table itself. */
 	if( ( hashtable = malloc( sizeof( hashtable_t ) ) ) == NULL ) {
+		free(hashtable);
 		return NULL;
 	}
 
 	/* Allocate pointers to the head nodes. */
 	if( ( hashtable->table = malloc( sizeof( entry_t * ) * size ) ) == NULL ) {
-		free(hashtable);
 		return NULL;
 	}
 	for( i = 0; i < size; i++ ) {
