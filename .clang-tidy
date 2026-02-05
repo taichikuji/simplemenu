@@ -1,0 +1,44 @@
+---
+# .clang-tidy configuration for SimpleMenu project
+# Helps catch bugs, security issues, and code quality problems
+
+Checks: >
+  *,
+  -llvmlibc-*,
+  -altera-*,
+  -fuchsia-*,
+  -google-readability-todo,
+  -readability-magic-numbers,
+  -cppcoreguidelines-avoid-magic-numbers,
+  -modernize-use-trailing-return-type,
+  -llvm-header-guard,
+  -misc-unused-parameters,
+  -readability-function-cognitive-complexity
+
+WarningsAsErrors: ''
+
+CheckOptions:
+  - key: readability-identifier-naming.FunctionCase
+    value: camelBack
+  - key: readability-identifier-naming.VariableCase
+    value: camelBack
+  - key: readability-identifier-naming.StructCase
+    value: CamelCase
+  - key: cert-err33-c.CheckedFunctions
+    value: '::fopen;::malloc;::calloc;::realloc;::fclose'
+
+# Key checks enabled:
+# - bugprone-* : Catches common programming errors
+# - cert-* : CERT C coding standard compliance
+# - clang-analyzer-* : Static analysis checks
+# - concurrency-* : Thread safety issues
+# - performance-* : Performance improvements
+# - portability-* : Portability issues
+# - readability-* : Code readability
+# - security-* : Security vulnerabilities (buffer overflows, etc.)
+
+# Security-critical checks:
+# - bugprone-sizeof-expression : Wrong sizeof usage
+# - cert-err33-c : Unchecked return values
+# - clang-analyzer-security.insecureAPI.strcpy : Unsafe string functions
+# - security-insecure-api-strcpy : Unsafe string operations

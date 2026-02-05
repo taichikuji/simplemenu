@@ -17,6 +17,10 @@ An alternative launcher over stock, made to be simple.
 
 ---
 
+See [SECURITY.md](SECURITY.md) for details on security improvements and [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines.
+
+---
+
 ## Building SimpleMenu for Powkiddy V90 and Bittboy v3.5
 
 As this fork, based on [fgl82/simplemenu](https://github.com/fgl82/simplemenu), targets Powkiddy v90, most of the work was done targetting that specific layout, and hardware.
@@ -120,6 +124,53 @@ This script automatically:
 - Cleans previous builds
 - Compiles with PLATFORM=BITTBOY
 - Copies binary to mounted device (if configured in the script)
+
+### Testing
+
+Run the test suite to verify code quality:
+
+```bash
+cd tests
+./run_tests.sh
+```
+
+For unit tests:
+
+```bash
+cd tests
+gcc -o test_string_utils test_string_utils.c ../simplemenu/src/logic/string_utils.c -I../simplemenu/src/headers
+./test_string_utils
+```
+
+See [tests/README.md](tests/README.md) for more information.
+
+### Code Quality Tools
+
+Before submitting changes, run static analysis:
+
+```bash
+# cppcheck
+cppcheck --enable=all --inconclusive simplemenu/src/
+
+# clang-tidy (if available)
+clang-tidy simplemenu/src/logic/*.c -- -I simplemenu/src/headers
+```
+
+Check for memory leaks with Valgrind:
+
+```bash
+valgrind --leak-check=full ./simplemenu
+```
+
+---
+
+## Contributing
+
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for:
+- Coding standards and best practices
+- Security guidelines
+- How to submit pull requests
+- Areas needing improvement
 
 ---
 

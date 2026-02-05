@@ -1,1 +1,48 @@
 /Build (GNU)/
+
+# Build artifacts
+*.o
+*.a
+*.so
+*.so.*
+*.dylib
+*.exe
+*.out
+*.app
+
+# Binary outputs
+simplemenu
+pc
+pg
+rg
+
+# Compiled object files
+**/*.o
+**/*.obj
+
+# Logs
+*.log
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Static analysis output
+cppcheck-report.txt
+clang-tidy-report.txt
+
+# Valgrind output
+valgrind-*.log
+
+# Core dumps
+core
+core.*
+
+# Temporary files
+tmp/
+*.tmp
+

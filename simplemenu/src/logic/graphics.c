@@ -100,8 +100,13 @@ int calculateProportionalSizeOrDistance(int number) {
 
 int genericDrawTextOnScreen(TTF_Font *font, TTF_Font *outline, int x, int y, char *buf, int txtColor[], int align, int backgroundColor[], int shaded) {
 	SDL_Surface *msg;
-	SDL_Surface *msg1 = malloc(sizeof(msg));
+	SDL_Surface *msg1 = malloc(sizeof(SDL_Surface));
 	char *bufCopy=malloc(strlen(buf)+1);
+	if (bufCopy == NULL || msg1 == NULL) {
+		free(bufCopy);
+		free(msg1);
+		return 0;
+	}
 	strcpy(bufCopy,buf);
 
 	int len=strlen(buf);
