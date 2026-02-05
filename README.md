@@ -65,11 +65,12 @@ To build SimpleMenu, you'll need:
 
 1. **Copy files to SD card:**
    ```bash
-   # Mount your SD card, then:
-   cp -r output/Bittboy/* /path/to/sdcard/apps/
+   # Mount your SD card (e.g., /media/sdcard), then:
+   cp -r output/Bittboy/* /media/sdcard/apps/simplemenu/
    ```
-   - Replace `/path/to/sdcard/` with your SD card's mount point
-   - Files should be in the `/apps/` directory on the device (which appears as `/mnt/apps/` when running on the device)
+   - Replace `/media/sdcard/` with your SD card's mount point on your computer
+   - Copy the contents to the `apps/simplemenu/` directory on the SD card
+   - When running on the device, this will be accessible at `/mnt/apps/simplemenu/`
 
 2. **Configuration:**
    - Default `config.ini` works out-of-the-box for Bittboy v3.5
@@ -84,11 +85,12 @@ To build SimpleMenu, you'll need:
 
 1. **Copy files to SD card:**
    ```bash
-   # Mount your SD card, then:
-   cp -r output/Bittboy/* /path/to/sdcard/apps/
+   # Mount your SD card (e.g., /media/sdcard), then:
+   cp -r output/Bittboy/* /media/sdcard/apps/simplemenu/
    ```
-   - Replace `/path/to/sdcard/` with your SD card's mount point
-   - Files should be in the `/apps/` directory on the device (which appears as `/mnt/apps/` when running on the device)
+   - Replace `/media/sdcard/` with your SD card's mount point on your computer
+   - Copy the contents to the `apps/simplemenu/` directory on the SD card
+   - When running on the device, this will be accessible at `/mnt/apps/simplemenu/`
 
 2. **Configuration:**
    - This fork (`taichikuji/simplemenu`) already includes V90-specific button mappings in `config.ini`
@@ -116,7 +118,7 @@ To build SimpleMenu, you'll need:
 | **Build Command** | `make PLATFORM=BITTBOY` | `make PLATFORM=BITTBOY` |
 | **Form Factor** | Clamshell (GBA SP style) | Candybar |
 | **Config File** | Modified button mappings | Default button mappings |
-| **Deployment Path** | `/mnt/apps/` on SD card | `/mnt/apps/` on SD card |
+| **Deployment Path** | `apps/simplemenu/` on SD card → `/mnt/apps/simplemenu/` on device | `apps/simplemenu/` on SD card → `/mnt/apps/simplemenu/` on device |
 
 ---
 
@@ -163,7 +165,7 @@ This script automatically:
 **Solution:**
 - Verify you're using the V90-specific `config.ini` from this fork
 - The V90's clamshell design requires different button mappings
-- Check `/mnt/apps/config/config.ini` on your SD card
+- Check `/mnt/apps/simplemenu/config/config.ini` on the device (or `apps/simplemenu/config/config.ini` on your SD card)
 - Compare with `configs/bittboy/config/config.ini` in this repository
 
 ### Binary won't run on device
