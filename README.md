@@ -66,8 +66,10 @@ To build SimpleMenu, you'll need:
 1. **Copy files to SD card:**
    ```bash
    # Mount your SD card, then:
-   cp -r output/Bittboy/* /mnt/sdcard/apps/
+   cp -r output/Bittboy/* /path/to/sdcard/apps/
    ```
+   - Replace `/path/to/sdcard/` with your SD card's mount point
+   - Files should be in the `/apps/` directory on the device (which appears as `/mnt/apps/` when running on the device)
 
 2. **Configuration:**
    - Default `config.ini` works out-of-the-box for Bittboy v3.5
@@ -83,8 +85,10 @@ To build SimpleMenu, you'll need:
 1. **Copy files to SD card:**
    ```bash
    # Mount your SD card, then:
-   cp -r output/Bittboy/* /mnt/sdcard/apps/
+   cp -r output/Bittboy/* /path/to/sdcard/apps/
    ```
+   - Replace `/path/to/sdcard/` with your SD card's mount point
+   - Files should be in the `/apps/` directory on the device (which appears as `/mnt/apps/` when running on the device)
 
 2. **Configuration:**
    - This fork (`taichikuji/simplemenu`) already includes V90-specific button mappings in `config.ini`
