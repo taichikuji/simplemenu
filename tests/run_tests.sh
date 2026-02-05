@@ -39,8 +39,8 @@ run_test() {
 echo "Compilation Tests:"
 echo "-----------------------------------"
 
-# Test: Project compiles without errors (for x86)
-run_test "Compilation check" "cd $PROJECT_ROOT/simplemenu && make clean > /dev/null 2>&1; echo 'Compilation test - skipped (requires cross-compiler setup)'"
+# Test: Project cleans/build files (x86 clean only to verify make invocations work)
+run_test "Compilation clean" "cd $PROJECT_ROOT/simplemenu && make clean > /dev/null 2>&1"
 
 echo ""
 echo "Static Analysis Tests:"
@@ -63,9 +63,7 @@ echo "-----------------------------------"
 # Test: Critical strcpy usage in OPK handling is fixed
 run_test "OPK buffer overflow fixed" "! grep -A2 'opk_read_pair' $PROJECT_ROOT/simplemenu/src/logic/logic.c | grep 'strcpy(desktopFiles'"
 
-# Test: sprintf with user input is avoided (allow sprintf with constants)
-# Note: Remaining sprintf calls use integer formatting or string constants, which is safer
-run_test "No sprintf with user strings" "echo 'sprintf still exists but uses controlled data - acceptable for now'"
+# TODO: Add automated check for unsafe sprintf usage once guidelines are finalized.
 
 # Test: Command injection in config.c is fixed
 run_test "Command injection fixed" "! grep 'system.*copyCommand' $PROJECT_ROOT/simplemenu/src/logic/config.c"

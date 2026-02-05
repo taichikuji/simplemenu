@@ -63,13 +63,13 @@ void test_toUpper_mixed() {
 void test_getExtension() {
     TEST("getExtension basic");
     char *result = getExtension("game.gba");
-    ASSERT(strcmp(result, ".gba") == 0);
+    ASSERT(result != NULL && strcmp(result, ".gba") == 0);
 }
 
 void test_getExtension_multiple_dots() {
     TEST("getExtension multiple dots");
     char *result = getExtension("my.game.gba");
-    ASSERT(strcmp(result, ".gba") == 0);
+    ASSERT(result != NULL && strcmp(result, ".gba") == 0);
 }
 
 void test_getExtension_no_extension() {

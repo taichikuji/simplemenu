@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Install dependencies
       run: |
@@ -28,9 +28,10 @@ jobs:
     
     - name: Run static analysis - cppcheck
       run: |
+        set -euo pipefail
         cppcheck --enable=all --inconclusive --std=c99 \
           --suppress=missingIncludeSystem \
-          --error-exitcode=0 \
+          --error-exitcode=1 \
           simplemenu/src/logic/ simplemenu/src/headers/ 2>&1 | tee cppcheck-report.txt
     
     - name: Build project (x86)

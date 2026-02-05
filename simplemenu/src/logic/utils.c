@@ -115,8 +115,12 @@ int safeCopyDirectory(const char* src, const char* dest) {
 		}
 		
 		/* Build paths */
-		snprintf(srcPath, sizeof(srcPath), "%s/%s", src, entry->d_name);
-		snprintf(destPath, sizeof(destPath), "%s/%s", dest, entry->d_name);
+		int srcLen = snprintf(srcPath, sizeof(srcPath), "%s/%s", src, entry->d_name);
+		int destLen = snprintf(destPath, sizeof(destPath), "%s/%s", dest, entry->d_name);
+		if (srcLen < 0 || destLen < 0 || (size_t)srcLen >= sizeof(srcPath) || (size_t)destLen >= sizeof(destPath)) {
+			closedir(dir);
+			return -1;
+		}
 		
 		/* Recursively copy */
 		if (stat(srcPath, &st) == 0) {
@@ -136,7 +140,12 @@ int safeCopyDirectory(const char* src, const char* dest) {
 				}
 				
 				while ((bytes = fread(buffer, 1, sizeof(buffer), srcFile)) > 0) {
-					fwrite(buffer, 1, bytes, destFile);
+					if (fwrite(buffer, 1, bytes, destFile) != bytes) {
+						fclose(srcFile);
+						fclose(destFile);
+						closedir(dir);
+						return -1;
+					}
 				}
 				
 				fclose(srcFile);
