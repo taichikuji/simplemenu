@@ -5,4 +5,5 @@ void logMessage(const char* tag, const char* function, const char* message);
 void closeLogFile();
 void enableLogging();
 void pushEvent();
+int safeCopyDirectory(const char* src, const char* dest);
 #endif
