@@ -48,7 +48,7 @@ echo "-----------------------------------"
 
 # Test: cppcheck passes
 if command -v cppcheck &> /dev/null; then
-    run_test "cppcheck static analysis" "cppcheck --quiet --error-exitcode=0 --enable=warning,performance,portability $PROJECT_ROOT/simplemenu/src/"
+    run_test "cppcheck static analysis" "cppcheck --quiet --error-exitcode=1 --enable=warning,performance,portability $PROJECT_ROOT/simplemenu/src/"
 else
     echo "cppcheck not installed - skipping"
 fi
