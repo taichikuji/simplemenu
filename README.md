@@ -94,9 +94,10 @@ To build SimpleMenu, you'll need:
    - When running on the device, this will be accessible at `/mnt/apps/simplemenu/`
 
 2. **Configuration:**
-   - This fork (`taichikuji/simplemenu`) already includes V90-specific button mappings in `config.ini`
-   - The clamshell form factor requires different button assignments compared to Bittboy
-   - Special attention to d-pad and shoulder button mappings
+   - This fork (`taichikuji/simplemenu`) includes button mappings optimized for both devices
+   - The config files are in `output/Bittboy/config/config.ini` (pre-deployment) and will be at `/mnt/apps/simplemenu/config/config.ini` on the device
+   - The clamshell form factor of the V90 may require button mapping adjustments compared to the candybar Bittboy
+   - If buttons don't work correctly, you may need to edit the button key codes in `config.ini` (see Troubleshooting section)
 
 3. **Test on hardware:**
    - Insert SD card into Powkiddy V90
