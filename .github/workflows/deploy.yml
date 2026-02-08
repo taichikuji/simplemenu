@@ -102,10 +102,14 @@ jobs:
           zip -r ../simplemenu_bittboy.zip simplemenu
           cd ..
 
-      - name: Upload Artifacts
+      - name: Upload Powkiddy V90 Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: SimpleMenu-Zips
-          path: |
-            simplemenu_v90.zip
-            simplemenu_bittboy.zip
+          name: simplemenu_v90
+          path: simplemenu_v90.zip
+
+      - name: Upload Bittboy Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: simplemenu_bittboy
+          path: simplemenu_bittboy.zip
