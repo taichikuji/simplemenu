@@ -9,7 +9,11 @@
 #include <string.h>
 #include <time.h>
 #include <stdio.h>
-#include </home/bittboy/git/libopk/opk.h>
+#ifndef TARGET_BITTBOY
+#if defined(TARGET_NPG) || defined(TARGET_OD) || defined TARGET_OD_BETA
+#include "opk.h"
+#endif
+#endif
 
 #include <sys/ioctl.h>
 #if defined(TARGET_NPG) || defined(TARGET_OD) || defined TARGET_OD_BETA
@@ -534,9 +538,10 @@ int compareIgnoreCase(char *str1, char *str2) {
 	for (int i = 0; temp2[i]; i++) {
 		temp2[i] = tolower(temp2[i]);
 	}
+	int result = strcmp(temp1, temp2);
 	free(temp1);
 	free(temp2);
-	return strcmp(temp1, temp2);
+	return result;
 }
 
 struct Node* SortedMerge(struct Node *a, struct Node *b) {
@@ -708,7 +713,6 @@ int scanDirectory(char *directory, char *files[], int i) {
 				if (e == NULL) {
 					strcat(d_name, "/");
 				}
-				free(e);
 				snprintf(path, PATH_MAX, "%s%s", directory, d_name);
 				CURRENT_SECTION.hasDirs = 1;
 				i = scanDirectory(path, files, i);
@@ -756,7 +760,6 @@ int recursivelyScanDirectory(char *directory, char *files[], int i) {
 				if (e == NULL) {
 					strcat(d_name, "/");
 				}
-				free(e);
 				snprintf(path, PATH_MAX, "%s%s", directory, d_name);
 				logMessage("INFO", "recursivelyScanDirectory","Recursing to path");
 				logMessage("INFO", "recursivelyScanDirectory",path);

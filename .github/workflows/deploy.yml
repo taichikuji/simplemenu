@@ -1,0 +1,111 @@
+name: Build SimpleMenu Zips
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'simplemenu/output/Bittboy/**'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: sudo apt-get install -y jq curl zip
+
+      - name: Download SimpleMenu Binary
+        run: |
+          echo "Finding latest simplemenu-miyoo.zip..."
+          # Fetch the browser_download_url for simplemenu-miyoo.zip from the latest release that has it
+          # Since latest release might not have it, we iterate releases until we find one.
+          # Or simpler: get from the known working release or search via jq.
+          
+          # This query finds the first release that contains simplemenu-miyoo.zip and gets its url.
+          LATEST_RELEASE_URL=$(curl -s https://api.github.com/repos/fgl82/simplemenu/releases | jq -r 'map(select(.assets[].name == "simplemenu-miyoo.zip"))[0].assets[] | select(.name == "simplemenu-miyoo.zip") | .browser_download_url')
+          
+          if [ -z "$LATEST_RELEASE_URL" ] || [ "$LATEST_RELEASE_URL" == "null" ]; then
+            echo "Could not find simplemenu-miyoo.zip in recent releases."
+            exit 1
+          fi
+          
+          echo "Downloading from $LATEST_RELEASE_URL"
+          curl -L -o simplemenu-miyoo.zip "$LATEST_RELEASE_URL"
+          
+          unzip simplemenu-miyoo.zip -d extracted_binary
+          
+          # Find the binary 'simplemenu' (not the folder)
+          BINARY_PATH=$(find extracted_binary -type f -name simplemenu | head -n 1)
+          if [ -z "$BINARY_PATH" ]; then
+             echo "Binary 'simplemenu' not found in zip."
+             exit 1
+          fi
+          cp "$BINARY_PATH" simplemenu_binary
+
+      - name: Prepare Workspace
+        run: |
+          # Create distribution folder structure
+          mkdir -p dist/simplemenu
+          
+          # Copy Bittboy folder contents (this is the base config for Powkiddy V90 too)
+          cp -r simplemenu/output/Bittboy/* dist/simplemenu/
+          
+          # Copy binary
+          cp simplemenu_binary dist/simplemenu/simplemenu
+          chmod +x dist/simplemenu/simplemenu
+          
+          # Copy simplemenu.png if it exists in expected location
+          if [ -f simplemenu/output/simplemenu.png ]; then
+             cp simplemenu/output/simplemenu.png dist/simplemenu/
+          else 
+             echo "Warning: simplemenu.png not found at simplemenu/output/simplemenu.png"
+          fi
+
+      - name: Build Powkiddy Zip
+        run: |
+          cd dist
+          zip -r ../simplemenu_v90.zip simplemenu
+          cd ..
+
+      - name: Configure for Bittboy
+        run: |
+          CONFIG_FILE="dist/simplemenu/config/config.ini"
+          
+          echo "Updating configuration for Bittboy..."
+          
+          # Bittboy Controls:
+          # A = 306
+          # B = 32
+          # X = 308
+          # Y = 304
+          
+          # Existing (Powkiddy):
+          # A = 308
+          # B = 306
+          # X = 304
+          # Y = 32
+          
+          sed -i 's/^A = 308/A = 306/' "$CONFIG_FILE"
+          sed -i 's/^B = 306/B = 32/' "$CONFIG_FILE"
+          sed -i 's/^X = 304/X = 308/' "$CONFIG_FILE"
+          sed -i 's/^Y = 32/Y = 304/' "$CONFIG_FILE"
+          
+          # Verify (Optional, prints grep output)
+          grep -E "^(A|B|X|Y) =" "$CONFIG_FILE"
+
+      - name: Build Bittboy Zip
+        run: |
+          cd dist
+          zip -r ../simplemenu_bittboy.zip simplemenu
+          cd ..
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: SimpleMenu-Zips
+          path: |
+            simplemenu_v90.zip
+            simplemenu_bittboy.zip

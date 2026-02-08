@@ -17,22 +17,22 @@ ifeq ($(PLATFORM), BITTBOY)
 else ifeq ($(PLATFORM), RFW)
 	CC = /opt/rg300-toolchain/usr/bin/mipsel-linux-gcc
 	LINKER = /opt/rg300-toolchain/usr/bin/mipsel-linux-gcc
-	CFLAGS = -DTARGET_RFW -DUSE_GZIP -O2 -fdata-sections -ffunction-sections -fno-PIC -flto -Wall -Wextra
+	CFLAGS = -DTARGET_RFW -DUSE_GZIP -O2 -fdata-sections -ffunction-sections -fno-PIC -flto -Wall -Wextra -Ilibopk
 	LIBS += -lSDL -lSDL_sound -lSDL_image -lSDL_ttf -lopk -lz
 else ifeq ($(PLATFORM), OD)
 	CC = /opt/gcw0-toolchain/usr/bin/mipsel-gcw0-linux-uclibc-gcc
 	LINKER = /opt/gcw0-toolchain/usr/bin/mipsel-gcw0-linux-uclibc-gcc
-	CFLAGS = -DTARGET_OD -DUSE_GZIP -Ofast -fdata-sections -ffunction-sections -fno-PIC -flto -Wall -Wextra -std=gnu99
+	CFLAGS = -DTARGET_OD -DUSE_GZIP -Ofast -fdata-sections -ffunction-sections -fno-PIC -flto -Wall -Wextra -std=gnu99 -Ilibopk
 	LIBS += -lSDL -lSDL_sound -lSDL_image -lSDL_ttf -lshake -lpthread -lopk -lz
 else ifeq ($(PLATFORM), OD-BETA)
 	CC = /home/bittboy/Downloads/gcw0-toolchain/usr/bin/mipsel-gcw0-linux-uclibc-gcc
 	LINKER = /home/bittboy/Downloads/gcw0-toolchain/usr/bin/mipsel-gcw0-linux-uclibc-gcc
-	CFLAGS = -DTARGET_OD_BETA -DUSE_GZIP -Ofast -fdata-sections -ffunction-sections -fno-PIC -flto -Wall -Wextra 
+	CFLAGS = -DTARGET_OD_BETA -DUSE_GZIP -Ofast -fdata-sections -ffunction-sections -fno-PIC -flto -Wall -Wextra -Ilibopk
 	LIBS += -lSDL -lSDL_sound -lSDL_image -lSDL_ttf -lshake -lpthread -lopk -lz	
 else ifeq ($(PLATFORM), NPG)
 	CC = /opt/gcw0-toolchain/usr/bin/mipsel-gcw0-linux-uclibc-gcc
 	LINKER = /opt/gcw0-toolchain/usr/bin/mipsel-gcw0-linux-uclibc-gcc
-	CFLAGS = -DTARGET_NPG -DUSE_GZIP -Ofast -fdata-sections -ffunction-sections -fno-PIC -flto -Wall -std=gnu99
+	CFLAGS = -DTARGET_NPG -DUSE_GZIP -Ofast -fdata-sections -ffunction-sections -fno-PIC -flto -Wall -std=gnu99 -Ilibopk
 	LIBS += -lSDL -lSDL_sound -lSDL_image -lSDL_ttf -lpthread -lopk -lz -lbz2	
 else
 	TARGET = simplemenu-x86
