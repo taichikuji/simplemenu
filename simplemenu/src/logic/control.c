@@ -5,7 +5,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#if defined TARGET_OD || defined TARGET_OD_BETA
+#if defined RG350
 #include <shake.h>
 #endif
 
@@ -125,7 +125,7 @@ int advanceSection(int showLogo) {
 		CURRENT_SECTION.systemLogoSurface = IMG_Load(CURRENT_SECTION.systemLogo);
 		resizeSectionSystemLogo(&CURRENT_SECTION);
 	}
-//	#ifdef TARGET_BITTBOY
+//	#ifdef MIYOO
 	if ((fullscreenMode||showLogo)&&currentSectionNumber!=favoritesSectionNumber) {
 //		displayBackgroundPicture();
 //		showConsole();
@@ -164,7 +164,7 @@ int rewindSection(int showLogo) {
 		CURRENT_SECTION.systemLogoSurface = IMG_Load(CURRENT_SECTION.systemLogo);
 		resizeSectionSystemLogo(&CURRENT_SECTION);
 	}
-//	#ifdef TARGET_BITTBOY
+//	#ifdef MIYOO
 	if ((fullscreenMode||showLogo)&&currentSectionNumber!=favoritesSectionNumber) {
 //		showConsole();
 	}
@@ -205,14 +205,14 @@ void launchAutoStartGame(struct Rom *rom, char *emuDir, char *emuExec) {
 	logMessage("INFO","launchAutoStartGame","Saving last state");
 	saveLastState();
 	if (CURRENT_SECTION.onlyFileNamesNoExtension) {
-		#ifndef TARGET_PC
+		#ifndef PC
 		executeCommand(emuDir, emuExec, getGameName(rom->name), rom->isConsoleApp);
 		#else
 		logMessage("INFO","launchAutoStartGame","Executing");
 		executeCommandPC(emuDir, getGameName(rom->name));
 		#endif
 	} else {
-		#ifdef TARGET_PC
+		#ifdef PC
 		executeCommandPC(emuExec, rom->name);
 		#else
 		logMessage("INFO","launchAutoStartGame","Executing 2");
@@ -228,24 +228,25 @@ void launchGame(struct Rom *rom) {
 
 	char tempExecDirPlusFileName[3000];
 	char tempExecFile[3000];
-	printf(" \n");
 	if (favoritesSectionSelected && favoritesSize > 0) {
-		struct Favorite favorite = favorites[CURRENT_GAME_NUMBER];
-		strcpy(tempExec,favorite.emulatorFolder);
-		char executableFileWithExtra[100];
-		strcpy(executableFileWithExtra, favorite.executable);
-		strcat(tempExec, strtok(executableFileWithExtra, " "));
-		file = fopen(tempExec, "r");
-		if (!file&&strstr(tempExec,"#")==NULL) {
-			strcpy(error, executableFileWithExtra);
-			strcat(error,"-NOT FOUND");
-			generateError(error,0);
-			return;
+		struct Favorite* favorite = GetNthFavorite(CURRENT_GAME_NUMBER);
+		if (favorite != NULL) {
+			strcpy(tempExec,favorite->emulatorFolder);
+			char executableFileWithExtra[100];
+			strcpy(executableFileWithExtra, favorite->executable);
+			strcat(tempExec, strtok(executableFileWithExtra, " "));
+			file = fopen(tempExec, "r");
+			if (!file&&strstr(tempExec,"#")==NULL) {
+				strcpy(error, executableFileWithExtra);
+				strcat(error,"-NOT FOUND");
+				generateError(error,0);
+				return;
+			}
 		}
-		#ifndef TARGET_PC
-		executeCommand(favorite.emulatorFolder,favorite.executable,favorite.name, favorite.isConsoleApp);
+		#ifndef PC
+		executeCommand(favorite->emulatorFolder,favorite->executable,favorite->name, favorite->isConsoleApp);
 		#else
-		executeCommandPC(favorite.executable,favorite.name);
+		executeCommandPC(favorite->executable,favorite->name);
 		#endif
 	} else if (rom->name!=NULL) {
 		loadRomPreferences(rom);
@@ -266,13 +267,13 @@ void launchGame(struct Rom *rom) {
 			return;
 		}
 		if (CURRENT_SECTION.onlyFileNamesNoExtension) {
-			#ifndef TARGET_PC
+			#ifndef PC
 			executeCommand(CURRENT_SECTION.emulatorDirectories[rom->preferences.emulatorDir], CURRENT_SECTION.executables[rom->preferences.emulator],getGameName(rom->name), rom->isConsoleApp);
 			#else
 			executeCommandPC(CURRENT_SECTION.executables[rom->preferences.emulator],getGameName(rom->name));
 			#endif
 		} else {
-			#ifdef TARGET_PC
+			#ifdef PC
 			executeCommandPC(CURRENT_SECTION.executables[rom->preferences.emulator],rom->name);
 			#else
 			executeCommand(CURRENT_SECTION.emulatorDirectories[rom->preferences.emulatorDir], CURRENT_SECTION.executables[rom->preferences.emulator],rom->name, rom->isConsoleApp);
@@ -283,18 +284,20 @@ void launchGame(struct Rom *rom) {
 
 void launchEmulator(struct Rom *rom) {
 	if (favoritesSectionSelected && favoritesSize > 0) {
-		struct Favorite favorite = favorites[CURRENT_GAME_NUMBER];
-		#ifndef TARGET_PC
-		executeCommand(favorite.emulatorFolder,favorite.executable,"*", favorite.isConsoleApp);
-		#else
-		executeCommandPC(favorite.executable,"*");
-		#endif
+		struct Favorite* favorite = GetNthFavorite(CURRENT_GAME_NUMBER);
+		if (favorite != NULL) {
+			#ifndef PC
+			executeCommand(favorite->emulatorFolder,favorite->executable,"*", favorite->isConsoleApp);
+			#else
+			executeCommandPC(favorite->executable,"*");
+			#endif
+		}
 	} else if (rom->name!=NULL) {
 		loadRomPreferences(rom);
-		#ifndef TARGET_PC
-		executeCommand(CURRENT_SECTION.emulatorDirectories[CURRENT_SECTION.currentGameNode->data->preferences.emulatorDir], CURRENT_SECTION.executables[CURRENT_SECTION.currentGameNode->data->preferences.emulator],"*", 0);
+		#ifndef PC
+		executeCommand(CURRENT_SECTION.emulatorDirectories[rom->preferences.emulatorDir], CURRENT_SECTION.executables[rom->preferences.emulator],"*", 0);
 		#else
-		executeCommandPC(CURRENT_SECTION.executables[CURRENT_SECTION.currentGameNode->data->preferences.emulator],"*");
+		executeCommandPC(CURRENT_SECTION.executables[rom->preferences.emulator],"*");
 		#endif
 	}
 }
@@ -309,12 +312,12 @@ void advancePage(struct Rom *rom) {
 		logMessage("INFO","advancePage","Less or equal than total pages");
 		if (CURRENT_SECTION.alphabeticalPaging) {
 			logMessage("INFO","advancePage","Alpha paging");
-			char *currentGame = getFileNameOrAlias(CURRENT_SECTION.currentGameNode->data);
+			char *currentGame = getFileNameOrAlias((struct Rom *)CURRENT_SECTION.currentGameNode->data);
 			char currentLetter=tolower(currentGame[0]);
 			while((tolower(currentGame[0])==currentLetter||(isdigit(currentLetter)&&isdigit(currentGame[0])))) {
 				scrollDown();
 				free(currentGame);
-				currentGame = getFileNameOrAlias(CURRENT_SECTION.currentGameNode->data);
+				currentGame = getFileNameOrAlias((struct Rom *)CURRENT_SECTION.currentGameNode->data);
 				if(CURRENT_SECTION.currentGameNode==CURRENT_SECTION.head) {
 					break;
 				}
@@ -358,7 +361,7 @@ void rewindPage(struct Rom *rom) {
 				}
 				free(currentGame);
 				free(previousGame);
-				currentGame = getFileNameOrAlias(CURRENT_SECTION.currentGameNode->data);
+				currentGame = getFileNameOrAlias((struct Rom *)CURRENT_SECTION.currentGameNode->data);
 			} else {
 				break;
 			}
@@ -369,7 +372,7 @@ void rewindPage(struct Rom *rom) {
 		}
 		hitStart=0;
 		free(currentGame);
-		currentGame = getFileNameOrAlias(CURRENT_SECTION.currentGameNode->data);
+		currentGame = getFileNameOrAlias((struct Rom *)CURRENT_SECTION.currentGameNode->data);
 		while(!(CURRENT_SECTION.currentPage==0&&CURRENT_SECTION.currentGameInPage==0)) {
 			previousGame = getFileNameOrAlias(CURRENT_SECTION.currentGameNode->prev->data);
 			if ( (tolower(currentGame[0])==tolower(previousGame[0])) ||
@@ -382,7 +385,7 @@ void rewindPage(struct Rom *rom) {
 				}
 				free(currentGame);
 				free(previousGame);
-				currentGame = getFileNameOrAlias(CURRENT_SECTION.currentGameNode->data);
+				currentGame = getFileNameOrAlias((struct Rom *)CURRENT_SECTION.currentGameNode->data);
 			} else {
 				break;
 			}
@@ -438,7 +441,7 @@ void showOrHideFavorites() {
 		logMessage("INFO","showOrHideFavorites","scrolled");
 		return;
 	}
-	if(strlen(favorites[0].name)<1) {
+	if(favoritesHead == NULL) {
 		return;
 	}
 	favoritesSectionSelected=1;
@@ -467,28 +470,14 @@ void showOrHideFavorites() {
 void removeFavorite() {
 	favoritesChanged=1;
 	if (favoritesSize>0) {
-		#if defined TARGET_OD || defined TARGET_OD_BETA
+		#if defined RG350
 		Shake_Play(device, effect_id1);
-		#endif	
-		for (int i=CURRENT_GAME_NUMBER;i<favoritesSize;i++) {
-			strcpy(favorites[i].emulatorFolder,favorites[i+1].emulatorFolder);
-			strcpy(favorites[i].section,favorites[i+1].section);
-			strcpy(favorites[i].executable,favorites[i+1].executable);
-			strcpy(favorites[i].filesDirectory,favorites[i+1].filesDirectory);
-			strcpy(favorites[i].name,favorites[i+1].name);
-			strcpy(favorites[i].alias,favorites[i+1].alias);
-			favorites[i].isConsoleApp = favorites[i+1].isConsoleApp;
-		}
-		strcpy(favorites[favoritesSize-1].section,"\0");
-		strcpy(favorites[favoritesSize-1].emulatorFolder,"\0");
-		strcpy(favorites[favoritesSize-1].executable,"\0");
-		strcpy(favorites[favoritesSize-1].filesDirectory,"\0");
-		strcpy(favorites[favoritesSize-1].name,"\0");
-		strcpy(favorites[favoritesSize-1].alias,"\0");
-		favorites[favoritesSize-1].isConsoleApp = 0;
+		#endif
+		// Remove the favorite at the current game number position
+		RemoveFavoriteAt(CURRENT_GAME_NUMBER);
 		favoritesSize--;
 		if (CURRENT_GAME_NUMBER==favoritesSize) {
-			FAVORITES_SECTION.realCurrentGameNumber--;
+			CURRENT_SECTION.realCurrentGameNumber--;
 		}
 		loadFavoritesSectionGameList();
 		if(!isPicModeMenuHidden) {
@@ -520,38 +509,42 @@ int msleep(long msec)
 
 void markAsFavorite(struct Rom *rom) {
 	favoritesChanged=1;
-	if (favoritesSize<FAVORITES_SIZE) {
-		if (!doesFavoriteExist(rom->name)) {
-			resetHideHeartTimer();
-			#if defined TARGET_OD || defined TARGET_OD_BETA
-			Shake_Play(device, effect_id);
-			msleep(200);
-			Shake_Play(device, effect_id);
-			#endif		
-			if (CURRENT_SECTION.onlyFileNamesNoExtension) {
-				strcpy(favorites[favoritesSize].name, getGameName(rom->name));
-			} else {
-				strcpy(favorites[favoritesSize].name, rom->name);
-			}
-			if(rom->alias!=NULL&&strlen(rom->alias)>2) {
-				strcpy(favorites[favoritesSize].alias, rom->alias);
-			} else {
-				favorites[favoritesSize].alias[0]=' ';
-			}
-			if (strlen(CURRENT_SECTION.fantasyName)>0) {
-				strcpy(favorites[favoritesSize].section,CURRENT_SECTION.fantasyName);
-			} else {
-				strcpy(favorites[favoritesSize].section,CURRENT_SECTION.sectionName);
-			}
-			loadRomPreferences(rom);
-			strcpy(favorites[favoritesSize].emulatorFolder,CURRENT_SECTION.emulatorDirectories[rom->preferences.emulatorDir]);
-			strcpy(favorites[favoritesSize].executable,CURRENT_SECTION.executables[rom->preferences.emulator]);
-			favorites[favoritesSize].frequency = rom->preferences.frequency;
-			strcpy(favorites[favoritesSize].filesDirectory,rom->directory);
-			favorites[favoritesSize].isConsoleApp = rom->isConsoleApp;
-			favoritesSize++;
-			qsort(favorites, favoritesSize, sizeof(struct Favorite), compareFavorites);
+	if (!doesFavoriteExist(rom->name)) {
+		resetHideHeartTimer();
+		#if defined RG350
+		Shake_Play(device, effect_id);
+		msleep(200);
+		Shake_Play(device, effect_id);
+		#endif
+		// Create a new favorite struct to add to the list
+		struct Favorite *newFavorite = malloc(sizeof(struct Favorite));
+		// Initialize all fields to safe values
+		memset(newFavorite, 0, sizeof(struct Favorite));
+		if (CURRENT_SECTION.onlyFileNamesNoExtension) {
+			strcpy(newFavorite->name, getGameName(rom->name));
+		} else {
+			strcpy(newFavorite->name, rom->name);
 		}
+		if(rom->alias!=NULL&&strlen(rom->alias)>2) {
+			strcpy(newFavorite->alias, rom->alias);
+		} else {
+			newFavorite->alias[0]='\0';
+		}
+		if (strlen(CURRENT_SECTION.fantasyName)>0) {
+			strcpy(newFavorite->section,CURRENT_SECTION.fantasyName);
+		} else {
+			strcpy(newFavorite->section,CURRENT_SECTION.sectionName);
+		}
+		loadRomPreferences(rom);
+		strcpy(newFavorite->emulatorFolder,CURRENT_SECTION.emulatorDirectories[rom->preferences.emulatorDir]);
+		strcpy(newFavorite->executable,CURRENT_SECTION.executables[rom->preferences.emulator]);
+		newFavorite->frequency = rom->preferences.frequency;
+		strcpy(newFavorite->filesDirectory,rom->directory);
+		newFavorite->isConsoleApp = rom->isConsoleApp;
+		
+		// Add to the doubly linked list
+		InsertFavoriteAtTail(newFavorite);
+		favoritesSize++;
 	}
 }
 
@@ -600,32 +593,6 @@ void performGroupChoosingAction() {
 				sectionGroupStates[beforeTryingToSwitchGroup][sectionCount][1]=menuSections[sectionCount].currentPage;
 				sectionGroupStates[beforeTryingToSwitchGroup][sectionCount][2]=menuSections[sectionCount].currentGameInPage;
 				sectionGroupStates[beforeTryingToSwitchGroup][sectionCount][3]=menuSections[sectionCount].realCurrentGameNumber;
-
-				cleanListForSection(&menuSections[sectionCount]);
-				if (menuSections[sectionCount].backgroundSurface!=NULL) {
-					SDL_FreeSurface(menuSections[sectionCount].backgroundSurface);
-					menuSections[sectionCount].backgroundSurface = NULL;
-				}
-				if (menuSections[sectionCount].systemLogoSurface!=NULL) {
-					SDL_FreeSurface(menuSections[sectionCount].systemLogoSurface);
-					menuSections[sectionCount].systemLogoSurface = NULL;
-				}
-				if (menuSections[sectionCount].systemPictureSurface!=NULL) {
-					SDL_FreeSurface(menuSections[sectionCount].systemPictureSurface);
-					menuSections[sectionCount].systemPictureSurface = NULL;
-				}
-
-				int execsNum = sizeof(menuSections[sectionCount].executables) / sizeof(menuSections[sectionCount].executables[0]);
-				for (int j=0;j<execsNum-1;j++) {
-					if (sectionCount!=favoritesSectionNumber) {
-						if (menuSections[sectionCount].executables[j]!=NULL&&strlen(menuSections[sectionCount].executables[j])>0) {
-							free(menuSections[sectionCount].executables[j]);
-						}
-						if (menuSections[sectionCount].emulatorDirectories[j]!=NULL&&strlen(menuSections[sectionCount].emulatorDirectories[j])>0) {
-							free(menuSections[sectionCount].emulatorDirectories[j]);
-						}
-					}
-				}
 			}
 			if (currentState!=BROWSING_GAME_LIST) {
 				loadSections(sectionGroups[activeGroup].groupPath);
@@ -712,14 +679,14 @@ void performSettingsChoosingAction() {
 		if(chosenSetting>0) {
 			chosenSetting--;
 		} else {
-			#if defined TARGET_RFW || defined TARGET_OD || defined TARGET_OD_BETA || defined TARGET_PC
+			#if defined RETROFW || defined RG350 || defined PC
 			chosenSetting=8;
 			#else
 			chosenSetting=7;
 			#endif
 		}
 	} else if (keys[BTN_DOWN]) {
-		#if defined TARGET_RFW || defined TARGET_OD || defined TARGET_OD_BETA || defined TARGET_PC
+		#if defined RETROFW || defined RG350 || defined PC
 		if(chosenSetting<8) {
 		#else
 		if(chosenSetting<7) {
@@ -732,7 +699,7 @@ void performSettingsChoosingAction() {
 		if (chosenSetting==TIDY_ROMS_OPTION) {
 			stripGames=1+stripGames*-1;
 		}
-		#if defined TARGET_OD || defined TARGET_OD_BETA || TARGET_PC
+		#if defined RG350 || PC
 		else if (chosenSetting==USB_OPTION) {
 			hdmiChanged=1+hdmiChanged*-1;
 		}
@@ -809,32 +776,26 @@ void performSettingsChoosingAction() {
 				}
 			}
 		} else if (chosenSetting==DEFAULT_OPTION) {
-			char command [300];
+			char command[300] = {0};			
 			if (shutDownEnabled) {
-				#ifdef TARGET_BITTBOY
+				#ifdef MIYOO
 				snprintf(command,sizeof(command),"rm /mnt/autoexec.sh;mv /mnt/autoexec.sh.bck /mnt/autoexec.sh");
 				#endif
-				#ifdef TARGET_RFW
+				#ifdef RETROFW
 				snprintf(command,sizeof(command),"rm /home/retrofw/autoexec.sh;mv /home/retrofw/autoexec.sh.bck /home/retrofw/autoexec.sh");
 				#endif
-				#if defined TARGET_OD || defined TARGET_NPG
+				#if defined RG350
 				snprintf(command,sizeof(command),"rm /usr/local/sbin/frontend_start;mv /usr/local/sbin/frontend_start.bck /usr/local/sbin/frontend_start");
 				#endif
-				#if defined TARGET_OD_BETA
-				snprintf(command,sizeof(command),"rm /media/data/local/home/.autostart");
-				#endif
 			} else {
-				#ifdef TARGET_BITTBOY
+				#ifdef MIYOO
 				snprintf(command,sizeof(command),"mv /mnt/autoexec.sh /mnt/autoexec.sh.bck;cp scripts/autoexec.sh /mnt");
 				#endif
-				#ifdef TARGET_RFW
+				#ifdef RETROFW
 				snprintf(command,sizeof(command),"mv /home/retrofw/autoexec.sh /home/retrofw/autoexec.sh.bck;cp scripts/autoexec.sh /home/retrofw");
 				#endif
-				#if defined TARGET_OD || defined TARGET_NPG
+				#if defined RG350
 				snprintf(command,sizeof(command),"mv /usr/local/sbin/frontend_start /usr/local/sbin/frontend_start.bck;cp scripts/frontend_start /usr/local/sbin/");
-				#endif
-				#if defined TARGET_OD_BETA
-				snprintf(command,sizeof(command),"cp ./scripts/frontend_start /media/data/local/home/.autostart");
 				#endif
 			}
 			int ret = system(command);
@@ -851,7 +812,7 @@ void performSettingsChoosingAction() {
 	} else if (chosenSetting==HELP_OPTION&&keys[BTN_A]) {
 		currentState=HELP_SCREEN_1;
 	}
-	#if defined TARGET_RFW
+	#if defined RETROFW
 	else if (chosenSetting==USB_OPTION&&keys[BTN_A]) {
 		executeCommand ("./scripts/", "usb_mode_on.sh", "#", 0);
 		hotKeyPressed=0;
@@ -867,7 +828,7 @@ void performSettingsChoosingAction() {
 	else if (keys[BTN_B]) {
 
 //		pthread_cancel(clockThread);
-		#if defined TARGET_OD || defined TARGET_OD_BETA
+		#if defined RG350
 		if (hdmiChanged!=hdmiEnabled) {
 			FILE *fp = fopen("/sys/class/hdmi/hdmi","w");
 			if (fp!=NULL) {
@@ -934,7 +895,7 @@ void performSettingsChoosingAction() {
 
 
 void performChoosingAction() {
-	struct Rom *rom = CURRENT_SECTION.currentGameNode->data;
+	struct Rom *rom = (struct Rom *)CURRENT_SECTION.currentGameNode->data;
 	if (keys[BTN_UP]) {
 		chosenChoosingOption--;
 		if (chosenChoosingOption<0) {
@@ -947,7 +908,7 @@ void performChoosingAction() {
 		}
 	} else if (keys[BTN_LEFT]) {
 		if(chosenChoosingOption==0) {
-#if defined TARGET_OD_BETA || defined TARGET_RFW || defined TARGET_BITTBOY
+#if defined RG350 || defined RETROFW || defined MIYOO
 			if (rom->preferences.frequency==OC_NO) {
 				rom->preferences.frequency=OC_OC;
 			} else {
@@ -976,7 +937,7 @@ void performChoosingAction() {
 		}
 	} else 	if (keys[BTN_RIGHT]) {
 		if(chosenChoosingOption==0) {
-#if defined TARGET_OD_BETA || defined TARGET_RFW || defined TARGET_BITTBOY
+#if defined RG350 || defined RETROFW || defined MIYOO
 			if (rom->preferences.frequency==OC_NO) {
 				rom->preferences.frequency=OC_OC;
 			} else {
@@ -1002,18 +963,19 @@ void performChoosingAction() {
 		}
 	} else	if (keys[BTN_B]) {
 		if (currentState!=BROWSING_GAME_LIST) {
-			int emu = CURRENT_SECTION.currentGameNode->data->preferences.emulator;
-			int emuDir = CURRENT_SECTION.currentGameNode->data->preferences.emulatorDir;
-			int hz = CURRENT_SECTION.currentGameNode->data->preferences.frequency;
-			loadRomPreferences(CURRENT_SECTION.currentGameNode->data);
-			if (CURRENT_SECTION.currentGameNode->data->preferences.emulatorDir!=emuDir  || CURRENT_SECTION.currentGameNode->data->preferences.emulator!=emu || CURRENT_SECTION.currentGameNode->data->preferences.frequency!=hz) {
-				CURRENT_SECTION.currentGameNode->data->preferences.emulator=emu;
-				CURRENT_SECTION.currentGameNode->data->preferences.emulatorDir=emu;
-				CURRENT_SECTION.currentGameNode->data->preferences.frequency=hz;
-				saveRomPreferences(CURRENT_SECTION.currentGameNode->data);
+			struct Rom *currentRom = (struct Rom *)CURRENT_SECTION.currentGameNode->data;
+			int emu = currentRom->preferences.emulator;
+			int emuDir = currentRom->preferences.emulatorDir;
+			int hz = currentRom->preferences.frequency;
+			loadRomPreferences(currentRom);
+			if (currentRom->preferences.emulatorDir!=emuDir  || currentRom->preferences.emulator!=emu || currentRom->preferences.frequency!=hz) {
+				currentRom->preferences.emulator=emu;
+				currentRom->preferences.emulatorDir=emu;
+				currentRom->preferences.frequency=hz;
+				saveRomPreferences(currentRom);
 			}
 			if (getLaunchAtBoot()!=NULL) {
-				launchGame(CURRENT_SECTION.currentGameNode->data);
+				launchGame(currentRom);
 			}
 			previousState=SELECTING_EMULATOR;
 			currentState=BROWSING_GAME_LIST;

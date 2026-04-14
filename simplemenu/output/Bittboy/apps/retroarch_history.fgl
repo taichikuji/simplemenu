@@ -1,3 +1,0 @@
-title=RetroArch last-played
-description=Launch last content from RA history
-exec=/mnt/emus/retroarch/retroarch_history.sh

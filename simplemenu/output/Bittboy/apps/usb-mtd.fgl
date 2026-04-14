@@ -1,3 +1,0 @@
-title=USB MTD
-description=USB MTD mass storage
-exec=/mnt/apps/usb-mtd/usb-mtd.sh
