@@ -18,7 +18,7 @@
 #include "../headers/hashtable.h"
 #include "../headers/constants.h"
 
-#if defined TARGET_OD || defined TARGET_OD_BETA
+#if defined RG350 || defined RG350
 #include <shake.h>
 #endif
 
@@ -26,6 +26,9 @@ extern int updateScreenFlag;
 extern int launchAtBoot;
 
 extern SDL_Surface *screen;
+#ifdef PC
+extern SDL_Surface *displayScreen;
+#endif
 extern int displayLogo;
 /* STATUS */
 extern int nullUpdate;
@@ -229,8 +232,14 @@ struct AutostartRom {
 	char *emulatorDir;
 };
 
+typedef enum {
+	NODE_TYPE_ROM,
+	NODE_TYPE_FAVORITE
+} NodeType;
+
 struct Node  {
-	struct Rom  *data;
+	void  *data;
+	NodeType nodeType;
 	struct Node *next;
 	struct Node *prev;
 };
@@ -288,7 +297,10 @@ struct MenuSection {
 extern struct SectionGroup sectionGroups[100];
 extern int sectionGroupStates[100][100][5];
 extern struct MenuSection menuSections[100];
-extern struct Favorite favorites[2000];
+extern struct MenuSection FAVORITES_SECTION;
+extern struct Node* favoritesHead;
+extern struct Node* favoritesTail;
+extern int favoritesSize;
 
 /* CONTROL */
 extern uint8_t *keys;
@@ -309,7 +321,7 @@ extern int BTN_R1;
 extern int BTN_L2;
 extern int BTN_R2;
 
-#if defined TARGET_OD || defined TARGET_OD_BETA
+#if defined RG350 || defined RG350
 extern Shake_Device *device;
 extern Shake_Effect effect;
 extern int effect_id;
