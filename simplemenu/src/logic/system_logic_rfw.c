@@ -5,7 +5,6 @@
 #include <sys/mman.h>
 #include <unistd.h>
 #include <stdint.h>
-#include "../headers/utils.h"
 #include "../headers/system_logic.h"
 #include "../headers/globals.h"
 
@@ -60,7 +59,7 @@ uint32_t suspend() {
 };
 
 void resetScreenOffTimer() {
-#ifndef PC
+#ifndef TARGET_PC
 	if(isSuspended) {
 		setCPU(OC_NO);
 		setBacklight(backlightValue);
@@ -75,7 +74,7 @@ void resetScreenOffTimer() {
 void initSuspendTimer() {
 	timeoutTimer=SDL_AddTimer(timeoutValue * 1e3, suspend, NULL);
 	isSuspended=0;
-	logMessage("INFO","initSuspendTimer","Suspend timer initialized");
+	logMessage("INFO","Suspend timer initialized");
 }
 
 void HW_Init() {
@@ -95,7 +94,7 @@ void HW_Init() {
 //    /* Setting Volume to max, that will avoid issues, i think */
     ioctl(soundDev, SOUND_MIXER_WRITE_VOLUME, &vol);
     close(soundDev);
-        logMessage("INFO","HW_Init","HW Initialized");
+	logMessage("INFO","HW Initialized");
 }
 
 void cycleFrequencies() {

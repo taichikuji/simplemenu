@@ -93,7 +93,8 @@ void showLetter(struct Rom *rom) {
 		drawRectangleToScreen(SCREEN_WIDTH, rectangleHeight, rectangleX, rectangleY, (int[]){0,0,0});
 	}
 	char currentGameFirstLetter[2]="";
-	char *currentGame = getFileNameOrAlias(rom);
+	char *currentGame = malloc(500);
+	currentGame=getFileNameOrAlias(rom);
 	currentGameFirstLetter[0]=toupper(currentGame[0]);
 	currentGameFirstLetter[1]='\0';
 
@@ -206,13 +207,12 @@ void showRomPreferences() {
 
 	int textWidth;
 
-	struct Rom *rom = (struct Rom *)CURRENT_SECTION.currentGameNode->data;
-	char *emuName = malloc(strlen(CURRENT_SECTION.executables[rom->preferences.emulator])+1);
-	strcpy(emuName,CURRENT_SECTION.executables[rom->preferences.emulator]);
+	char *emuName = malloc(strlen(CURRENT_SECTION.executables[CURRENT_SECTION.currentGameNode->data->preferences.emulator])+1);
+	strcpy(emuName,CURRENT_SECTION.executables[CURRENT_SECTION.currentGameNode->data->preferences.emulator]);
 	strcat(emuName,"\0");
 
 	char *frequency = malloc(10);
-	snprintf(frequency, 10, "%d", rom->preferences.frequency);
+	snprintf(frequency, 10, "%d", CURRENT_SECTION.currentGameNode->data->preferences.frequency);
 
 	int width=calculateProportionalSizeOrDistance(315);
 	int height = calculateProportionalSizeOrDistance(72);
@@ -236,7 +236,7 @@ void showRomPreferences() {
 	}
 
 	//Name
-	char * name = getNameWithoutPath(rom->name);
+	char * name = getNameWithoutPath(CURRENT_SECTION.currentGameNode->data->name);
 	drawTextOnScreen(getFont(), NULL, calculateProportionalSizeOrDistance(6), (SCREEN_HEIGHT/2)-calculateProportionalSizeOrDistance(28), name, (int[]) {255,255,255}, VAlignMiddle | HAlignLeft);
 	free(name);
 
@@ -246,8 +246,8 @@ void showRomPreferences() {
 	//Frequency option text
 	drawTextOnScreen(getFont(), NULL, (SCREEN_WIDTH/2)-width/2+calculateProportionalSizeOrDistance(4), (SCREEN_HEIGHT/2)-calculateProportionalSizeOrDistance(9), "Overclock: ", textColor, VAlignMiddle | HAlignLeft);
 	//Frequency option value
-#if defined RG350 || defined RETROFW || defined MIYOO
-	if (rom->preferences.frequency==OC_OC) {
+#if defined TARGET_OD_BETA || defined TARGET_RFW || defined TARGET_BITTBOY
+	if (CURRENT_SECTION.currentGameNode->data->preferences.frequency==OC_OC) {
 		drawTextOnScreen(getFont(), NULL, (SCREEN_WIDTH/2)-width/2+textWidth+1, (SCREEN_HEIGHT/2)-calculateProportionalSizeOrDistance(9), "yes", valueColor, VAlignMiddle | HAlignLeft);
 	} else {
 		drawTextOnScreen(getFont(), NULL, (SCREEN_WIDTH/2)-width/2+textWidth+1, (SCREEN_HEIGHT/2)-calculateProportionalSizeOrDistance(9), "no", valueColor, VAlignMiddle | HAlignLeft);
@@ -304,8 +304,8 @@ void showConsole() {
 
 		if (displayGameCount) {
 			drawTextOnScreen(getGameCountFont(),NULL,calculateProportionalSizeOrDistance(gameCountX),calculateProportionalSizeOrDistance(gameCountY),gameCount,gameCountFontColor,alignment);
+			free(gameCount);
 		}
-		free(gameCount);
 
 	} else {
 		drawRectangleToScreen(SCREEN_WIDTH,SCREEN_HEIGHT,0,0,(int[]){180,180,180});
@@ -316,28 +316,20 @@ void showConsole() {
 
 void displayGamePicture(struct Rom *rom) {
 	char *pictureWithFullPath=malloc(600);
-	char *tempGameName;
+	char *tempGameName=malloc(300);
 	char *originalGameName = NULL;
-	struct Favorite* favorite = NULL;
-
 	if (favoritesSectionSelected) {
 		if (favoritesSize == 0) {
-			free(pictureWithFullPath);
 			return;
 		}
-		favorite = GetNthFavorite(CURRENT_GAME_NUMBER);
-		if (favorite != NULL) {
-			strcpy(pictureWithFullPath, favorite->filesDirectory);
-			tempGameName=getGameName(favorite->name);
-			originalGameName = favorite->name;
-		} else {
-			free(pictureWithFullPath);
-			return;
-		}
+		struct Favorite favorite = favorites[CURRENT_GAME_NUMBER];
+		strcpy(pictureWithFullPath, favorite.filesDirectory);
+		tempGameName=getGameName(favorite.name);
+		originalGameName = favorite.name;
 	} else {
 		if (rom==NULL) {
 			strcpy(pictureWithFullPath, "NO GAMES FOUND");
-			tempGameName=getGameName("NO GAMES FOUND");		
+			tempGameName=getGameName("NO GAMES FOUND");
 			originalGameName = tempGameName;
 		} else {
 			strcpy(pictureWithFullPath, rom->directory);
@@ -357,72 +349,55 @@ void displayGamePicture(struct Rom *rom) {
 	strcat(pictureWithFullPath,".png");
 
 	displayBackgroundPicture();
-	if (originalGameName==NULL || strcmp(originalGameName, "NO GAMES FOUND") == 0) {
-		displayCenteredImageOnScreen(pictureWithFullPath, tempGameName, 1, 1);
-		free(pictureWithFullPath);
-		free(tempGameName);
+	if (rom==NULL) {
+		displayCenteredImageOnScreen(pictureWithFullPath, tempGameName, 1,1);
 		return;
 	}
 	stripGameNameLeaveExtension(tempGameName);
 	if (strlen(CURRENT_SECTION.aliasFileName)>1||currentSectionNumber==favoritesSectionNumber) {
 		char* displayName=NULL;
-
-		if (favoritesSectionSelected) {
-			if (favorite!=NULL) {
-				if (strlen(favorite->alias)<2) {
-					char tmp[300];
-					strcpy(tmp,getNameWithoutPath(favorite->name));
-					strcpy(tmp,getNameWithoutExtension(tmp));
-					if (stripGames) {
-						char * temp1 = getAliasWithoutAlternateNameOrParenthesis(tmp);
-						displayCenteredImageOnScreen(pictureWithFullPath, temp1, 1,1);
-						drawPictureTextOnScreen(temp1);
-						free(temp1);
+		if (rom!=NULL) {
+			displayName=getFileNameOrAlias(rom);
+		}
+		if (!favoritesSectionSelected&&rom!=NULL&&(stripGames||strlen(CURRENT_SECTION.aliasFileName)>1)) {
+			if (stripGames) {
+				strcpy(displayName,getAliasWithoutAlternateNameOrParenthesis(rom->alias));
+			} else {
+				strcpy(displayName,rom->alias);
+			}
+			displayCenteredImageOnScreen(pictureWithFullPath, displayName, 1,1);
+			drawPictureTextOnScreen(displayName);
+		} else {
+			if (favoritesSectionSelected) {
+				if (rom!=NULL) {
+					if (strlen(rom->alias)<2) {
+						char tmp[300];
+						strcpy(tmp,getNameWithoutPath(rom->name));
+						strcpy(tmp,getNameWithoutExtension(tmp));
+						if (stripGames) {
+							char * temp1 = getAliasWithoutAlternateNameOrParenthesis(tmp);
+							displayCenteredImageOnScreen(pictureWithFullPath, temp1, 1,1);
+							drawPictureTextOnScreen(temp1);
+							free(temp1);
+						} else {
+							displayCenteredImageOnScreen(pictureWithFullPath, tmp, 1,1);
+							drawPictureTextOnScreen(tmp);
+						}
 					} else {
-						displayCenteredImageOnScreen(pictureWithFullPath, tmp, 1,1);
-						drawPictureTextOnScreen(tmp);
-					}
-				} else {
-					if (stripGames) {
-						char * temp1 = getAliasWithoutAlternateNameOrParenthesis(favorite->alias);
-						displayCenteredImageOnScreen(pictureWithFullPath, temp1, 1,1);
-						drawPictureTextOnScreen(temp1);
-						free(temp1);
-					} else {
-						displayCenteredImageOnScreen(pictureWithFullPath, favorite->alias, 1,1);
-						drawPictureTextOnScreen(favorite->alias);
+						if (stripGames) {
+							char * temp1 = getAliasWithoutAlternateNameOrParenthesis(rom->alias);
+							displayCenteredImageOnScreen(pictureWithFullPath, temp1, 1,1);
+							drawPictureTextOnScreen(temp1);
+							free(temp1);
+						} else {
+							displayCenteredImageOnScreen(pictureWithFullPath, rom->alias, 1,1);
+							drawPictureTextOnScreen(rom->alias);
+						}
 					}
 				}
 			}
-		} else if (!favoritesSectionSelected&&rom!=NULL&&(stripGames||strlen(CURRENT_SECTION.aliasFileName)>1)) {
-			if (stripGames && rom->alias != NULL && strlen(rom->alias) > 2) {
-				char *temp1 = getAliasWithoutAlternateNameOrParenthesis(rom->alias);
-				displayName = malloc(strlen(temp1)+1);
-				if (displayName) {
-					strcpy(displayName, temp1);
-					displayCenteredImageOnScreen(pictureWithFullPath, displayName, 1,1);
-					drawPictureTextOnScreen(displayName);
-				}
-				free(temp1);
-			} else if (rom->alias != NULL && strlen(rom->alias) > 0) {
-				displayName = malloc(strlen(rom->alias)+1);
-				if (displayName) {
-					strcpy(displayName, rom->alias);
-					displayCenteredImageOnScreen(pictureWithFullPath, displayName, 1,1);
-					drawPictureTextOnScreen(displayName);
-				}
-			} else if (rom->name != NULL) {
-				displayName = malloc(strlen(rom->name)+1);
-				if (displayName) {
-					strcpy(displayName, rom->name);
-					displayCenteredImageOnScreen(pictureWithFullPath, displayName, 1,1);
-					drawPictureTextOnScreen(displayName);
-				}
-			}
 		}
-		if(displayName != NULL) {
-			free(displayName);
-		}
+		free(displayName);
 	} else {
 		if (stripGames) {
 			if (rom!=NULL) {
@@ -469,22 +444,16 @@ void displayGamePicture(struct Rom *rom) {
 
 void displayGamePictureInMenu(struct Rom *rom) {
 	char *pictureWithFullPath=malloc(600);
-	char *tempGameName;
+	char *tempGameName=malloc(300);
 	char *originalGameName = NULL;
 	if (favoritesSectionSelected) {
 		if (favoritesSize == 0) {
-			free(pictureWithFullPath);
 			return;
 		}
-		struct Favorite* favorite = GetNthFavorite(CURRENT_GAME_NUMBER);
-		if (favorite != NULL) {
-			strcpy(pictureWithFullPath, favorite->filesDirectory);
-			originalGameName = favorite->name;
-			tempGameName=getGameName(favorite->name);
-		} else {
-			free(pictureWithFullPath);
-			return;
-		}
+		struct Favorite favorite = favorites[CURRENT_GAME_NUMBER];
+		strcpy(pictureWithFullPath, favorite.filesDirectory);
+		originalGameName = favorite.name;
+		tempGameName=getGameName(favorite.name);
 	} else {
 		if (rom==NULL) {
 			logMessage("INFO","displayGamePictureInMenu","No games!");
@@ -597,101 +566,50 @@ void drawGameList() {
 		nextLine = calculateProportionalSizeOrDistance(gameListPositionFullScreen);
 	}
 
-	char *tempNameForDisplay;
-	struct Node* currentNode = NULL;
-	struct Favorite *favorite = NULL;
+	char *nameWithoutExtension;
+	struct Node* currentNode;
 	char *buf;
-
-	if (favoritesSectionSelected) {
-		favorite = GetNthFavorite(ITEMS_PER_PAGE*CURRENT_SECTION.currentPage);
-	} else {
-		currentNode = GetNthNode(ITEMS_PER_PAGE*CURRENT_SECTION.currentPage);
-	}
-
+	currentNode = GetNthNode(ITEMS_PER_PAGE*CURRENT_SECTION.currentPage);
 	for (int i=0;i<ITEMS_PER_PAGE;i++) {
-		if (favoritesSectionSelected) {
-			if (favorite==NULL) {
-				break;
-			}
-		} else if (currentNode==NULL) {
+		if (currentNode==NULL) {
 			break;
 		}
-
-		struct Rom* rom = NULL; // Initialize to NULL to avoid issues in the non-favorite path
-		if (!favoritesSectionSelected) {
-			rom = (struct Rom *)currentNode->data;
-		}
+		struct Rom* rom = currentNode->data;
 		gamesInPage++;
-
-		if (favoritesSectionSelected) {
-			if (strlen(favorite->alias)>2) {
-				tempNameForDisplay=malloc(strlen(favorite->alias)+1);
-				strcpy(tempNameForDisplay,favorite->alias);
-				if(stripGames) {
-					char* temp1 = getAliasWithoutAlternateNameOrParenthesis(favorite->alias);
-					free(tempNameForDisplay);
-					tempNameForDisplay=malloc(strlen(temp1)+1);
-					strcpy(tempNameForDisplay,temp1);
-					free(temp1);
-				}
-			} else {
-				tempNameForDisplay=malloc(strlen(favorite->name)+1);
-				strcpy(tempNameForDisplay,favorite->name);
-				if(stripGames) {
-					char* temp1 = strdup(tempNameForDisplay);
-					stripGameName(temp1);
-					free(tempNameForDisplay);
-					tempNameForDisplay=malloc(strlen(temp1)+1);
-					strcpy(tempNameForDisplay,temp1);
-					free(temp1);
-				} else {
-					char *nameWithoutPath=getNameWithoutPath(tempNameForDisplay);
-					free(tempNameForDisplay);
-					tempNameForDisplay=getNameWithoutExtension(nameWithoutPath);
-					free(nameWithoutPath);
-				}
-			}
-		} else if (rom->alias!=NULL &&  (strlen(rom->alias)>2)) {
-			tempNameForDisplay=malloc(strlen(rom->alias)+1);
-			strcpy(tempNameForDisplay,rom->alias);
+		if (rom->alias!=NULL &&  (strlen(rom->alias)>2)) {
+			nameWithoutExtension=malloc(strlen(rom->alias)+1);
+			strcpy(nameWithoutExtension,rom->alias);
 			if(stripGames) {
 				char* temp1 = getAliasWithoutAlternateNameOrParenthesis(rom->alias);
-				free(tempNameForDisplay);
-				tempNameForDisplay=malloc(strlen(temp1)+1);
-				strcpy(tempNameForDisplay,temp1);
+				free(nameWithoutExtension);
+				nameWithoutExtension=malloc(strlen(temp1)+1);
+				strcpy(nameWithoutExtension,temp1);
 				free(temp1);
 			}
 		} else {
-			tempNameForDisplay=malloc(strlen(rom->name)+1);
-			strcpy(tempNameForDisplay,rom->name);
+			nameWithoutExtension=malloc(strlen(rom->name)+1);
+			strcpy(nameWithoutExtension,rom->name);
 			if(stripGames) {
-				char* temp1 = strdup(tempNameForDisplay);
+				char* temp1 = strdup(nameWithoutExtension);
 				stripGameName(temp1);
-				free(tempNameForDisplay);
-				tempNameForDisplay=malloc(strlen(temp1)+1);
-				strcpy(tempNameForDisplay,temp1);
+				free(nameWithoutExtension);
+				nameWithoutExtension=malloc(strlen(temp1)+1);
+				strcpy(nameWithoutExtension,temp1);
 				free(temp1);
 			} else {
-				char *nameWithoutPath=getNameWithoutPath(tempNameForDisplay);
-				free(tempNameForDisplay);
-				tempNameForDisplay=getNameWithoutExtension(nameWithoutPath);
+				char *nameWithoutPath=getNameWithoutPath(nameWithoutExtension);
+				free(nameWithoutExtension);
+				nameWithoutExtension=getNameWithoutExtension(nameWithoutPath);
 				free(nameWithoutPath);
 			}
 		}
-		buf=strdup(tempNameForDisplay);
+		buf=strdup(nameWithoutExtension);
 
 		char *temp = malloc(strlen(buf)+2);
-		int currentRomFrequency = OC_NO;
-		if (favoritesSectionSelected) {
-			currentRomFrequency = favorite->frequency;
-		} else {
-			currentRomFrequency = rom->preferences.frequency;
-		}
-
-		if (currentRomFrequency == OC_UC) {
+		if (rom->preferences.frequency == OC_UC) {
 			strcpy(temp,"-");
 			strcat(temp,buf);
-		} else 	if (currentRomFrequency == OC_OC) {
+		} else 	if (rom->preferences.frequency == OC_OC) {
 			strcpy(temp,"+");
 			strcat(temp,buf);
 		} else {
@@ -727,14 +645,10 @@ void drawGameList() {
 		} else {
 			nextLine+=calculateProportionalSizeOrDistance(itemsSeparation);
 		}
-		free(tempNameForDisplay);
+		free(nameWithoutExtension);
 		free(buf);
 		free(temp);
-		if (favoritesSectionSelected) {
-			favorite = GetNthFavorite(ITEMS_PER_PAGE*CURRENT_SECTION.currentPage+i+1);
-		} else {
-			currentNode = currentNode->next;
-		}
+		currentNode = currentNode->next;
 	}
 	MAGIC_NUMBER = SCREEN_WIDTH-calculateProportionalSizeOrDistance(2);
 	logMessage("INFO","drawGameList","Game list - Done");
@@ -744,8 +658,8 @@ void setupDecorations() {
 	if (text1X!=-1&&text1Y!=-1) {
 		drawHeader();
 	}
-	char *gameNumber=malloc(24);
-	snprintf(gameNumber,24,"%d/%d",CURRENT_SECTION.gameCount>0?(CURRENT_SECTION.currentGameInPage+ITEMS_PER_PAGE*CURRENT_SECTION.currentPage)+1:0,CURRENT_SECTION.gameCount);
+	char *gameNumber=malloc(10);
+	snprintf(gameNumber,10,"%d/%d",CURRENT_SECTION.gameCount>0?(CURRENT_SECTION.currentGameInPage+ITEMS_PER_PAGE*CURRENT_SECTION.currentPage)+1:0,CURRENT_SECTION.gameCount);
 	drawCustomGameNumber(gameNumber, calculateProportionalSizeOrDistance(text2X), calculateProportionalSizeOrDistance(text2Y));
 	free(gameNumber);
 	logMessage("INFO","setupDecorations","Decorations set");
@@ -793,7 +707,7 @@ void setOptionsAndValues (char **options, char **values, char **hints){
 	strcpy(options[DEFAULT_OPTION],"Default launcher  ");
 	logMessage("INFO","setOptionsAndValues","Default option");
 	logMessage("INFO","setOptionsAndValues",options[DEFAULT_OPTION]);
-	#if defined RETROFW
+	#if defined TARGET_RFW
 	strcpy(options[USB_OPTION],"USB mode");
 	#else
 	strcpy(options[USB_OPTION],"HDMI");
@@ -813,7 +727,7 @@ void setOptionsAndValues (char **options, char **values, char **hints){
 	logMessage("INFO","setOptionsAndValues",hints[DEFAULT_OPTION]);
 	strcpy(hints[HELP_OPTION],"HOW TO USE THIS MENU");
 
-	#if defined RETROFW
+	#if defined TARGET_RFW
 	strcpy(hints[USB_OPTION],"PRESS A TO ENABLE USB");
 	#else
 	strcpy(hints[USB_OPTION],"ENABLE OR DISABLE HDMI");
@@ -878,7 +792,7 @@ void setOptionsAndValues (char **options, char **values, char **hints){
 		logMessage("INFO","setOptionsAndValues","Default option value");
 		logMessage("INFO","setOptionsAndValues",values[DEFAULT_OPTION]);
 	}
-	#if defined RETROFW
+	#if defined TARGET_RFW
 	strcpy(values[USB_OPTION]," \0");
 	#else
 	if (hdmiChanged==1) {
@@ -930,7 +844,7 @@ void drawSettingsScreen() {
 	FULL_SCREEN_FOOTER_OPTION=4;
 	FULL_SCREEN_MENU_OPTION=5;
 	DEFAULT_OPTION=6;
-	#if defined MIYOO
+	#if defined TARGET_BITTBOY
 	USB_OPTION=8;
 	HELP_OPTION=7;
 	#else
@@ -961,9 +875,9 @@ void drawSettingsScreen() {
 	int nextLine = calculateProportionalSizeOrDistance(50);
 	int nextLineText = calculateProportionalSizeOrDistance(50);
 	int selected=0;
-	#if defined RETROFW
+	#if defined TARGET_RFW
 	int max = 9;
-	#elif defined RG350 || defined RG350 || defined PC
+	#elif defined TARGET_OD || defined TARGET_OD_BETA || defined TARGET_PC
 	int max = 9;
 	#else
 	int max = 8;
@@ -1088,7 +1002,7 @@ void drawHelpScreen(int page) {
 						drawSettingsOptionValueOnScreen("Show/Hide favorites", nextLineText, bodyHighlightedText);
 						break;
 					case 4:
-						#if defined MIYOO
+						#if defined TARGET_BITTBOY
 						drawNonShadedSettingsOptionOnScreen("R", nextLineText, bodyText);
 						#else
 						drawNonShadedSettingsOptionOnScreen("R1", nextLineText, bodyText);
@@ -1151,7 +1065,7 @@ void updateScreen(struct Node *node) {
 	if (node==NULL) {
 		rom = NULL;
 	} else {
-		rom = (struct Rom *)node->data;
+		rom = node->data;
 	}
 	if (!itsStoppedBecauseOfAnError) {
 		switch(currentState) {

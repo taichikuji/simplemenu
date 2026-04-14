@@ -7,7 +7,7 @@
 #include "../headers/hashtable.h"
 #include "../headers/constants.h"
 
-#if defined RG350 || defined RG350
+#if defined TARGET_OD || defined TARGET_OD_BETA
 #include <shake.h>
 #endif
 SDL_Surface *screen;
@@ -211,14 +211,8 @@ struct Rom {
 	int isConsoleApp;
 };
 
-typedef enum {
-	NODE_TYPE_ROM,
-	NODE_TYPE_FAVORITE
-} NodeType;
-
 struct Node  {
-	void  *data;
-	NodeType nodeType;
+	struct Rom  *data;
 	struct Node *next;
 	struct Node *prev;
 };
@@ -275,10 +269,7 @@ struct MenuSection {
 struct SectionGroup sectionGroups[100];
 int sectionGroupStates[100][100][5];
 struct MenuSection menuSections[100];
-struct MenuSection FAVORITES_SECTION;
-struct Node* favoritesHead = NULL;
-struct Node* favoritesTail = NULL;
-int favoritesSize = 0;
+struct Favorite favorites[2000];
 
 /* CONTROL */
 uint8_t *keys;
@@ -299,7 +290,7 @@ int BTN_R1;
 int BTN_L2;
 int BTN_R2;
 
-#if defined RG350 || defined RG350
+#if defined TARGET_OD || defined TARGET_OD_BETA
  Shake_Device *device;
  Shake_Effect effect;
  int effect_id;
@@ -315,9 +306,6 @@ int HDMI_WIDTH;
 int HDMI_HEIGHT;
 double SCREEN_RATIO;
 int hdmiEnabled;
-#ifdef PC
-SDL_Surface *displayScreen;
-#endif
 
 /* MISC */
 time_t currRawtime;

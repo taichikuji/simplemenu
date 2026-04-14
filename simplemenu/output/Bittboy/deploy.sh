@@ -6,12 +6,14 @@ echo "Welcome to Taichi's simplemenu deploy script! Initiating..."
 if find /mnt/ -name '._*' -print -quit | grep '._' >/dev/null; then
     echo "Deleting all macos dot files"
     find /mnt/ -name '._*' -exec rm -v {} \;
+    echo "Step 1 completed"
 fi
 
 # Create the ".simplemenu" folder
 if [ ! -d "/mnt/.simplemenu" ]; then
     echo "Creating .simplemenu on /mnt/"
     mkdir /mnt/.simplemenu
+    echo "Step 2 completed"
 fi
 
 # Copy the contents of "simplemenu" to ".simplemenu"
@@ -27,12 +29,14 @@ if [ -d "/mnt/apps/simplemenu" ]; then
     echo "Removing redundant data from /mnt/.simplemenu/"
     rm -fr /mnt/.simplemenu/config/*
     rm -fr /mnt/.simplemenu/deploy.sh /mnt/.simplemenu/main.sh /mnt/.simplemenu/clean_dot_files.sh
+    echo "Step 3 completed"
 fi
 
 # Copy "autoexec.sh" one folder upwards
 if [ -f "/mnt/.simplemenu/scripts/autoexec.sh" ]; then
     echo "Copying autoexec.sh to /mnt/"
     cp /mnt/.simplemenu/scripts/autoexec.sh /mnt/
+    echo "Step 4 completed"
 fi
 
 # Autobooting simplemenu
@@ -52,14 +56,15 @@ if [ -f "/etc/main" ]; then
         fi
         echo "Changing partition permissions back on /"
         mount -o remount,ro /
+        echo "Step 5 completed"
     else
         echo "Failed to remount filesystem as read-write"
     fi
 fi
 
-echo "All completed! Syncing..."
+echo "Syncing..."
 sync
-echo "Sync finished! Shutting down..."
+echo "Shutting down..."
 sleep 3
 poweroff
 exit

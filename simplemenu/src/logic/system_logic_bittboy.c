@@ -5,7 +5,6 @@
 #include <unistd.h>
 #include <math.h>
 
-#include "../headers/utils.h"
 #include "../headers/globals.h"
 #include "../headers/system_logic.h"
 
@@ -288,24 +287,24 @@ void setCPU(uint32_t mhz) {
 	currentCPU=mhz;
 	uint32_t x, v;
 	uint32_t total=sizeof(oc_table)/sizeof(uint32_t);
-	logMessage("INFO", "setCPU", "Into for");
+	logMessage("INFO", "Into for");
 	for(x=0; x<total; x++) {
 		if((oc_table[x] >> 16) >= mhz) {
-			logMessage("INFO", "setCPU", "Found if");
+			logMessage("INFO", "Found if");
 			v = memregs[0];
-			logMessage("INFO","setCPU", "Found if 1");
+			logMessage("INFO", "Found if 1");
 			v&= 0xffff0000;
-			logMessage("INFO","setCPU", "Found if 2");
+			logMessage("INFO", "Found if 2");
 			v|= (oc_table[x] &  0x0000ffff);
-			logMessage("INFO","setCPU", "Found if 3");
+			logMessage("INFO", "Found if 3");
 			memregs[0] = v;
-			logMessage("INFO","setCPU", "Break");
+			logMessage("INFO", "Break");
 			break;
 		}
 	}
 	char temp[300];
 	snprintf(temp,sizeof(temp),"CPU speed set: %d",currentCPU);
-	logMessage("INFO","setCPU", temp);
+	logMessage("INFO",temp);
 }
 
 int getBacklight()
@@ -349,7 +348,7 @@ uint32_t suspend() {
 };
 
 void resetScreenOffTimer() {
-#ifndef PC
+#ifndef TARGET_PC
 	if(isSuspended) {
 		setCPU(OC_NO);
 		setBacklight(backlightValue);
@@ -364,7 +363,7 @@ void resetScreenOffTimer() {
 void initSuspendTimer() {
 	timeoutTimer=SDL_AddTimer(timeoutValue * 1e3, suspend, NULL);
 	isSuspended=0;
-	logMessage("INFO", "initSuspendTimer", "Suspend timer initialized");
+	logMessage("INFO","Suspend timer initialized");
 }
 
 void HW_Init() {
@@ -375,7 +374,7 @@ void HW_Init() {
 			close(memdev);
 		}
 	}
-	logMessage("INFO", "HW_Init", "HW Initialized");
+	logMessage("INFO","HW Initialized");
 }
 
 void cycleFrequencies() {

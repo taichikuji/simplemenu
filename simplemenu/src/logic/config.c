@@ -1,8 +1,4 @@
-#ifndef _GNU_SOURCE
 #define _GNU_SOURCE
-#endif
-#define MAX_HOME_LIMIT 4000
-#define PATH_BUFFER_SIZE 5000
 #include <stdio.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -17,9 +13,8 @@
 #include "../headers/graphics.h"
 #include "../headers/utils.h"
 #include "../headers/config.h"
-#include "../headers/doubly_linked_rom_list.h"
 
-char home[PATH_BUFFER_SIZE];
+char home[5000];
 char pathToThemeConfigFile[1000];
 char pathToThemeConfigFilePlusFileName[1000];
 
@@ -58,16 +53,24 @@ void loadAliasList(int sectionNumber) {
 void checkIfDefault() {
 	FILE *fp=NULL;
 	FILE *fpScripts=NULL;
-	#ifdef MIYOO
+	#ifdef TARGET_BITTBOY
 	logMessage("INFO","checkIfDefault","Checking if default bittboy");
 	fp = fopen("/mnt/autoexec.sh", "r");
 	fpScripts = fopen("scripts/autoexec.sh", "r");
 	#endif
-	#ifdef RETROFW
+	#ifdef TARGET_RFW
 	fp = fopen("/home/retrofw/autoexec.sh", "r");
 	fpScripts = fopen("scripts/autoexec.sh", "r");
 	#endif
-	#if defined RG350
+	#if defined TARGET_OD
+	fp = fopen("/media/data/local/sbin/frontend_start", "r");
+	fpScripts = fopen("scripts/frontend_start", "r");
+	#endif
+	#if defined TARGET_OD_BETA
+	fp = fopen("/media/data/local/home/.autostart", "r");
+	fpScripts = fopen("scripts/frontend_start", "r");
+	#endif
+	#ifdef TARGET_NPG
 	fp = fopen("/media/data/local/sbin/frontend_start", "r");
 	fpScripts = fopen("scripts/frontend_start", "r");
 	#endif
@@ -100,37 +103,40 @@ void checkIfDefault() {
 	logMessage("INFO","checkIfDefault","Default state checked");
 }
 
+//void myGetLine(char * line, size_t len, FILE * fp) {
+//	__ssize_t result = getline(&line, &len, fp);
+//	if(result==-1) {
+//		logMessage("INFO", "myGetLine", "Huh?");
+//	}
+//}
+
 int isLaunchAtBoot(char *romName) {
 	FILE * fp;
 	char * line = NULL;
 	size_t len = 0;
-	char pathToAutostartFilePlusFileName[PATH_BUFFER_SIZE];
-	snprintf(pathToAutostartFilePlusFileName, sizeof(pathToAutostartFilePlusFileName), "%.*s/.simplemenu/rom_preferences/autostart.rom", MAX_HOME_LIMIT, home);
+//	ssize_t read;
+	char pathToAutostartFilePlusFileName[300];
+	snprintf(pathToAutostartFilePlusFileName,sizeof(pathToAutostartFilePlusFileName),"%s/.simplemenu/rom_preferences/autostart.rom",home);
 
 	fp = fopen(pathToAutostartFilePlusFileName, "r");
 	if (fp==NULL) {
 		return 0;
 	}
+//	myGetLine(line, len, fp);
 	getline(&line, &len, fp);
 	line[strlen(line)-1] = '\0';
 	if (!strcmp(line,romName)) {
 		fclose(fp);
-		if (line) {
-			free(line);
-		}
 		return 1;
 	}
 	fclose(fp);
-	if (line) {
-		free(line);
-	}
 	return 0;
 }
 
 int wasRunningFlag() {
 	FILE * fp;
-	char pathToRunningFlagFilePlusFileName[PATH_BUFFER_SIZE];
-	snprintf(pathToRunningFlagFilePlusFileName,sizeof(pathToRunningFlagFilePlusFileName),"%.*s/.simplemenu/rom_preferences/is_running.flg", MAX_HOME_LIMIT, home);
+	char pathToRunningFlagFilePlusFileName[300];
+	snprintf(pathToRunningFlagFilePlusFileName,sizeof(pathToRunningFlagFilePlusFileName),"%s/.simplemenu/rom_preferences/is_running.flg",home);
 	fp = fopen(pathToRunningFlagFilePlusFileName, "rw");
 	if (fp==NULL) {
 		return 0;
@@ -142,8 +148,8 @@ int wasRunningFlag() {
 
 void setRunningFlag() {
 	FILE * fp;
-	char pathToRunningFlagFilePlusFileName[PATH_BUFFER_SIZE];
-	snprintf(pathToRunningFlagFilePlusFileName,sizeof(pathToRunningFlagFilePlusFileName),"%.*s/.simplemenu/rom_preferences/is_running.flg", MAX_HOME_LIMIT, home);
+	char pathToRunningFlagFilePlusFileName[300];
+	snprintf(pathToRunningFlagFilePlusFileName,sizeof(pathToRunningFlagFilePlusFileName),"%s/.simplemenu/rom_preferences/is_running.flg",home);
 	fp = fopen(pathToRunningFlagFilePlusFileName, "w");
 	fprintf(fp,"%d", 1);
 	fclose(fp);
@@ -151,8 +157,8 @@ void setRunningFlag() {
 
 void setLaunchAtBoot(struct Rom *rom) {
 	FILE * fp;
-	char pathToAutostartFilePlusFileName[PATH_BUFFER_SIZE];
-	snprintf(pathToAutostartFilePlusFileName,sizeof(pathToAutostartFilePlusFileName),"%.*s/.simplemenu/rom_preferences/autostart.rom", MAX_HOME_LIMIT, home);
+	char pathToAutostartFilePlusFileName[300];
+	snprintf(pathToAutostartFilePlusFileName,sizeof(pathToAutostartFilePlusFileName),"%s/.simplemenu/rom_preferences/autostart.rom",home);
 	if (rom==NULL) {
 		remove(pathToAutostartFilePlusFileName);
 	} else {
@@ -175,22 +181,33 @@ struct AutostartRom *getLaunchAtBoot() {
 	FILE *fp;
 	char *line = NULL;
 	size_t len = 0;
-	char pathToAutostartFilePlusFileName[PATH_BUFFER_SIZE];
-	snprintf(pathToAutostartFilePlusFileName,sizeof(pathToAutostartFilePlusFileName),"%.*s/.simplemenu/rom_preferences/autostart.rom", MAX_HOME_LIMIT, home);
+	char pathToAutostartFilePlusFileName[300];
+	snprintf(pathToAutostartFilePlusFileName,sizeof(pathToAutostartFilePlusFileName),"%s/.simplemenu/rom_preferences/autostart.rom",home);
 	fp = fopen(pathToAutostartFilePlusFileName, "r");
 	if (fp==NULL) {
 		return NULL;
 	}
+//	fprintf(fp,"%s", rom->name);
+//	fprintf(fp,"%s", rom->directory);
+//	fprintf(fp,"%s", rom->alias);
+//	fprintf(fp,"%s", rom->isConsoleApp);
+//	fprintf(fp,"%s", rom->preferences.emulator);
+//	fprintf(fp,"%s", rom->preferences.emulatorDir);
+//	fprintf(fp,"%s", rom->preferences.frequenc
 	struct Rom *rom = malloc(sizeof(struct Rom));
+//	myGetLine(line, len, fp);
 	getline(&line, &len, fp);
 	rom->name=strdup(line);
 
+//	myGetLine(line, len, fp);
 	getline(&line, &len, fp);
 	rom->directory=strdup(line);
 
+//	myGetLine(line, len, fp);
 	getline(&line, &len, fp);
 	rom->alias=strdup(line);
 
+//	myGetLine(line, len, fp);
 	getline(&line, &len, fp);
 	rom->isConsoleApp=atoifgl(line);
 
@@ -198,15 +215,15 @@ struct AutostartRom *getLaunchAtBoot() {
 	struct AutostartRom *autostartRom = malloc(sizeof(struct AutostartRom));
 	autostartRom->rom = rom;
 
+//	myGetLine(line, len, fp);
 	getline(&line, &len, fp);
 	autostartRom->emulatorDir = strdup(line);
 
+//	myGetLine(line, len, fp);
 	getline(&line, &len, fp);
 	autostartRom->emulator = strdup(line);
+//	printf("%s%s%s%d\n", rom->name, rom->directory, rom->alias, rom->isConsoleApp);
 	fclose(fp);
-	if (line != NULL) {
-		free(line);
-	}
 	return autostartRom;
 }
 
@@ -554,50 +571,50 @@ void checkThemes() {
 
 void createConfigFilesInHomeIfTheyDontExist() {
 	snprintf(home,sizeof(home),"%s",getenv("HOME"));
-	char pathToConfigFiles[PATH_BUFFER_SIZE];
-	char pathToAppFiles[PATH_BUFFER_SIZE];
-	char pathToGameFiles[PATH_BUFFER_SIZE];
-//	char pathToThemeFiles[PATH_BUFFER_SIZE];
-	char pathToTempFiles[PATH_BUFFER_SIZE];
-	char pathToSectionGroupsFiles[PATH_BUFFER_SIZE];
-	snprintf(pathToConfigFiles,sizeof(pathToConfigFiles),"%.*s/.simplemenu", MAX_HOME_LIMIT, home);
-	snprintf(pathToAppFiles, sizeof(pathToAppFiles), "%.*s/.simplemenu/apps", MAX_HOME_LIMIT, home);
-	snprintf(pathToGameFiles,sizeof(pathToGameFiles),"%.*s/.simplemenu/games", MAX_HOME_LIMIT, home);
-	snprintf(pathToSectionGroupsFiles,sizeof(pathToSectionGroupsFiles),"%.*s/.simplemenu/section_groups", MAX_HOME_LIMIT, home);
-//	snprintf(pathToThemeFiles,sizeof(pathToThemeFiles),"%.*s/.simplemenu/themes", MAX_HOME_LIMIT, home);
-	snprintf(pathToTempFiles,sizeof(pathToTempFiles),"%.*s/.simplemenu/tmp", MAX_HOME_LIMIT, home);
+	char pathToConfigFiles[5000];
+	char pathToAppFiles[5000];
+	char pathToGameFiles[5000];
+//	char pathToThemeFiles[5000];
+	char pathToTempFiles[5000];
+	char pathToSectionGroupsFiles[5000];
+	snprintf(pathToConfigFiles,sizeof(pathToConfigFiles),"%s/.simplemenu",home);
+	snprintf(pathToAppFiles,sizeof(pathToConfigFiles),"%s/.simplemenu/apps",home);
+	snprintf(pathToGameFiles,sizeof(pathToGameFiles),"%s/.simplemenu/games",home);
+	snprintf(pathToSectionGroupsFiles,sizeof(pathToSectionGroupsFiles),"%s/.simplemenu/section_groups",home);
+//	snprintf(pathToThemeFiles,sizeof(pathToThemeFiles),"%s/.simplemenu/themes",home);
+	snprintf(pathToTempFiles,sizeof(pathToTempFiles),"%s/.simplemenu/tmp",home);
 	int directoryExists=mkdir(pathToConfigFiles,0700);
 	if (!directoryExists) {
-		char copyCommand[PATH_BUFFER_SIZE];
-		snprintf(copyCommand,sizeof(copyCommand),"cp config/* %.*s/.simplemenu", MAX_HOME_LIMIT, home);
+		char copyCommand[5000];
+		snprintf(copyCommand,sizeof(copyCommand),"cp config/* %s/.simplemenu",home);
 		int ret = system(copyCommand);
 		if (ret==-1) {
 			generateError("FATAL ERROR", 1);
 		}
-		char copyAppsCommand[PATH_BUFFER_SIZE];
+		char copyAppsCommand[5000];
 		mkdir(pathToAppFiles,0700);
-		snprintf(copyAppsCommand,sizeof(copyAppsCommand),"cp apps %.*s/.simplemenu", MAX_HOME_LIMIT, home);
+		snprintf(copyAppsCommand,sizeof(copyAppsCommand),"cp apps %s/.simplemenu",home);
 		ret = system(copyAppsCommand);
 		if (ret==-1) {
 			generateError("FATAL ERROR", 1);
 		}
-		char copyGamesCommand[PATH_BUFFER_SIZE];
+		char copyGamesCommand[5000];
 		mkdir(pathToGameFiles,0700);
-		snprintf(copyGamesCommand,sizeof(copyGamesCommand),"cp games %.*s/.simplemenu", MAX_HOME_LIMIT, home);
+		snprintf(copyGamesCommand,sizeof(copyGamesCommand),"cp games %s/.simplemenu",home);
 		ret = system(copyGamesCommand);
 		if (ret==-1) {
 			generateError("FATAL ERROR", 1);
 		}
-//		char copyThemesCommand[PATH_BUFFER_SIZE];
+//		char copyThemesCommand[5000];
 //		mkdir(pathToThemeFiles,0700);
-//		snprintf(copyThemesCommand,sizeof(copyThemesCommand),"cp -r themes %.*s/.simplemenu", MAX_HOME_LIMIT, home);
+//		snprintf(copyThemesCommand,sizeof(copyThemesCommand),"cp -r themes %s/.simplemenu",home);
 //		ret = system(copyThemesCommand);
 //		if (ret==-1) {
 //			generateError("FATAL ERROR", 1);
 //		}
-		char copySectionGroupsCommand[PATH_BUFFER_SIZE];
+		char copySectionGroupsCommand[5000];
 		mkdir(pathToSectionGroupsFiles,0700);
-		snprintf(copySectionGroupsCommand,sizeof(copySectionGroupsCommand),"cp -r section_groups %.*s/.simplemenu", MAX_HOME_LIMIT, home);
+		snprintf(copySectionGroupsCommand,sizeof(copySectionGroupsCommand),"cp -r section_groups %s/.simplemenu",home);
 		ret = system(copySectionGroupsCommand);
 		if (ret==-1) {
 			generateError("FATAL ERROR", 1);
@@ -624,16 +641,16 @@ void createConfigFilesInHomeIfTheyDontExist() {
 }
 
 void createThemesInHomeIfTheyDontExist() {
-	char pathToThemeFiles[PATH_BUFFER_SIZE];
-	snprintf(pathToThemeFiles,sizeof(pathToThemeFiles),"%.*s/.simplemenu/themes", MAX_HOME_LIMIT, home);
+	char pathToThemeFiles[5000];
+	snprintf(pathToThemeFiles,sizeof(pathToThemeFiles),"%s/.simplemenu/themes",home);
 	int directoryExists=mkdir(pathToThemeFiles,0700);
 	if (!directoryExists) {
 		drawCopyingText("COPYING FILES, PLEASE WAIT");
 		refreshScreen();
 		int ret=0;
-		char copyThemesCommand[PATH_BUFFER_SIZE];
+		char copyThemesCommand[5000];
 		mkdir(pathToThemeFiles,0700);
-		snprintf(copyThemesCommand,sizeof(copyThemesCommand),"cp -r themes %.*s/.simplemenu", MAX_HOME_LIMIT, home);
+		snprintf(copyThemesCommand,sizeof(copyThemesCommand),"cp -r themes %s/.simplemenu",home);
 		ret = system(copyThemesCommand);
 		if (ret==-1) {
 			generateError("FATAL ERROR", 1);
@@ -644,14 +661,9 @@ void createThemesInHomeIfTheyDontExist() {
 
 void saveRomPreferences(struct Rom *rom) {
 	FILE * fp;
-	char pathToPreferencesFilePlusFileName[PATH_BUFFER_SIZE];
-	char *romNameWithoutPath = getNameWithoutPath(rom->name);
-	snprintf(pathToPreferencesFilePlusFileName,sizeof(pathToPreferencesFilePlusFileName),"%.*s/.simplemenu/rom_preferences/%s", MAX_HOME_LIMIT, home, romNameWithoutPath);
-	free(romNameWithoutPath);
+	char pathToPreferencesFilePlusFileName[300];
+	snprintf(pathToPreferencesFilePlusFileName,sizeof(pathToPreferencesFilePlusFileName),"%s/.simplemenu/rom_preferences/%s",home, getNameWithoutPath(rom->name));
 	fp = fopen(pathToPreferencesFilePlusFileName, "w");
-	if (fp == NULL) {
-		return;
-	}
 	fprintf(fp,"%d;", rom->preferences.emulatorDir);
 	fprintf(fp,"%d;", rom->preferences.emulator);
 	fprintf(fp,"%d", rom->preferences.frequency);
@@ -663,12 +675,10 @@ void loadRomPreferences(struct Rom *rom) {
 	FILE * fp;
 	char * line = NULL;
 	size_t len = 0;
-	char pathToPreferencesFilePlusFileName[PATH_BUFFER_SIZE];
-	char pathToPreferencesFiles[PATH_BUFFER_SIZE];
-	char *romNameWithoutPath = getNameWithoutPath(rom->name);
-	snprintf(pathToPreferencesFilePlusFileName,sizeof(pathToPreferencesFilePlusFileName),"%.*s/.simplemenu/rom_preferences/%s", MAX_HOME_LIMIT, home, romNameWithoutPath);
-	free(romNameWithoutPath);
-	snprintf(pathToPreferencesFiles,sizeof(pathToPreferencesFiles),"%.*s/.simplemenu/rom_preferences", MAX_HOME_LIMIT, home);
+	char pathToPreferencesFilePlusFileName[800];
+	char pathToPreferencesFiles[800];
+	snprintf(pathToPreferencesFilePlusFileName,sizeof(pathToPreferencesFilePlusFileName),"%s/.simplemenu/rom_preferences/%s",home, getNameWithoutPath(rom->name));
+	snprintf(pathToPreferencesFiles,sizeof(pathToPreferencesFiles),"%s/.simplemenu/rom_preferences",home);
 
 	mkdir(pathToPreferencesFiles,0700);
 
@@ -683,6 +693,7 @@ void loadRomPreferences(struct Rom *rom) {
 	}
 	char *configurations[4];
 	char *ptr;
+//	myGetLine(line, len, fp);
 	getline(&line, &len, fp);
 	ptr = strtok(line, ";");
 	int i=0;
@@ -694,101 +705,41 @@ void loadRomPreferences(struct Rom *rom) {
 	rom->preferences.emulatorDir=atoifgl(configurations[0]);
 	rom->preferences.emulator=atoifgl(configurations[1]);
 	rom->preferences.frequency=atoifgl(configurations[2]);
-
-	fclose(fp);
-	if (line != NULL) {
-		free(line);
-	}
+//	printf("%d - %d - %d\n", rom->preferences.emulatorDir, rom->preferences.emulator, rom->preferences.frequency);
 }
 
 void saveFavorites() {
 	if (favoritesChanged) {
 		FILE * fp;
-		char pathToFavoritesFilePlusFileName[PATH_BUFFER_SIZE];
-		snprintf(pathToFavoritesFilePlusFileName,sizeof(pathToFavoritesFilePlusFileName),"%.*s/.simplemenu/favorites.sav", MAX_HOME_LIMIT, home);
+		char pathToFavoritesFilePlusFileName[300];
+		snprintf(pathToFavoritesFilePlusFileName,sizeof(pathToFavoritesFilePlusFileName),"%s/.simplemenu/favorites.sav",home);
 		fp = fopen(pathToFavoritesFilePlusFileName, "w");
 		int linesWritten=0;
-		struct Node* current = favoritesHead;
-		while (current != NULL) {
-			struct Favorite* favorite = (struct Favorite*)current->data;
-			if (strlen(favorite->name)==1) {
+		for (int j=0;j<favoritesSize;j++) {
+			struct Favorite favorite = favorites[j];
+			if (strlen(favorite.name)==1) {
 				break;
 			}
 			if(linesWritten>0) {
 				fprintf(fp,"\n");
 			}
-			fprintf(fp,"%s;",favorite->section);
-			fprintf(fp,"%s;",favorite->name);
-			if(favorite->alias[0]=='\0') {
+			fprintf(fp,"%s;",favorite.section);
+			fprintf(fp,"%s;",favorite.name);
+			if(favorite.alias[0]=='\0') {
 				fprintf(fp," ;");
 			} else {
-				fprintf(fp,"%s;",favorite->alias);
+				fprintf(fp,"%s;",favorite.alias);
 			}
-			fprintf(fp,"%s;",favorite->emulatorFolder);
-			fprintf(fp,"%s;",favorite->executable);
-			fprintf(fp,"%d;",favorite->isConsoleApp);
-			fprintf(fp,"%s;",favorite->filesDirectory);
-			fprintf(fp,"%d",favorite->frequency);
+			fprintf(fp,"%s;",favorite.emulatorFolder);
+			fprintf(fp,"%s;",favorite.executable);
+			fprintf(fp,"%d;",favorite.isConsoleApp);
+			fprintf(fp,"%s;",favorite.filesDirectory);
+			fprintf(fp,"%d",favorite.frequency);
 			linesWritten++;
-			current = current->next;
 		}
 		fclose(fp);
 		favoritesChanged=0;
 	}
-}
-
-int cmpfncfavs(const void *a, const void *b) {
-    struct Node *nodeA = *(struct Node **)a;
-    struct Node *nodeB = *(struct Node **)b;
-
-    struct Favorite *favA = (struct Favorite *)nodeA->data;
-    struct Favorite *favB = (struct Favorite *)nodeB->data;
-
-    // Determine which string to use for A
-    // We check if alias[0] is not a null terminator (meaning it's not empty)
-    char *displayA = (favA->alias[0] != ' ') ? favA->alias : favA->name;
-    
-    // Determine which string to use for B
-    char *displayB = (favB->alias[0] != ' ') ? favB->alias : favB->name;
-
-    // Sort alphabetically by the chosen display strings
-    return strcasecmp(displayA, displayB);
-}
-
-void sortFavorites() {
-    // Basic safety checks
-    if (favoritesSize < 2 || favoritesHead == NULL) {
-        return;
-    }
-
-    // Allocate an array to hold 'struct Node' pointers
-    struct Node **ptrArray = malloc(favoritesSize * sizeof(struct Node *));
-    if (ptrArray == NULL) {
-        return; // Always check malloc on systems like your Arch laptop
-    }
-
-    // 1. Traverse the list and fill the array with the Nodes
-    struct Node *current = favoritesHead;
-    for (int i = 0; i < favoritesSize && current != NULL; i++) {
-        ptrArray[i] = current;
-        current = current->next;
-    }
-
-    // 2. Sort the array of Node pointers using our comparison function
-    qsort(ptrArray, favoritesSize, sizeof(struct Node *), cmpfncfavs);
-
-    // 3. Re-link all the 'next' and 'prev' pointers in the new order
-    for (int i = 0; i < favoritesSize; i++) {
-        ptrArray[i]->next = (i < favoritesSize - 1) ? ptrArray[i + 1] : NULL;
-        ptrArray[i]->prev = (i > 0) ? ptrArray[i - 1] : NULL;
-    }
-
-    // 4. Update the global head and tail pointers
-    favoritesHead = ptrArray[0];
-    favoritesTail = ptrArray[favoritesSize - 1];
-
-    // 5. Free the temporary array (Valgrind will thank you)
-    free(ptrArray);
 }
 
 void loadFavorites() {
@@ -796,8 +747,8 @@ void loadFavorites() {
 	char * line = NULL;
 	size_t len = 0;
 	ssize_t read;
-	char pathToFavoritesFilePlusFileName[PATH_BUFFER_SIZE];
-	snprintf(pathToFavoritesFilePlusFileName,sizeof(pathToFavoritesFilePlusFileName),"%.*s/.simplemenu/favorites.sav", MAX_HOME_LIMIT, home);
+	char pathToFavoritesFilePlusFileName[300];
+	snprintf(pathToFavoritesFilePlusFileName,sizeof(pathToFavoritesFilePlusFileName),"%s/.simplemenu/favorites.sav",home);
 	fp = fopen(pathToFavoritesFilePlusFileName, "r");
 	if (fp==NULL) {
 		generateError("FAVORITES FILE NOT FOUND",1);
@@ -814,32 +765,25 @@ void loadFavorites() {
 			ptr = strtok(NULL, ";");
 			i++;
 		}
-		// Create a new favorite struct
-		struct Favorite *newFavorite = malloc(sizeof(struct Favorite));
-		// Initialize all fields to safe values
-		memset(newFavorite, 0, sizeof(struct Favorite));
-		strcpy(newFavorite->section,configurations[0]);
-		strcpy(newFavorite->name,configurations[1]);
-		strcpy(newFavorite->alias,configurations[2]);
-		strcpy(newFavorite->emulatorFolder,configurations[3]);
-		strcpy(newFavorite->executable,configurations[4]);
-		newFavorite->isConsoleApp = atoi(configurations[5]);
-		strcpy(newFavorite->filesDirectory,configurations[6]);
-		newFavorite->frequency = atoi(configurations[7]);
-		int len = strlen(newFavorite->filesDirectory);
-		if (newFavorite->filesDirectory[len-1]=='\n') {
-			newFavorite->filesDirectory[len-1]='\0';
+		strcpy(favorites[favoritesSize].section,configurations[0]);
+		strcpy(favorites[favoritesSize].name,configurations[1]);
+		strcpy(favorites[favoritesSize].alias,configurations[2]);
+		strcpy(favorites[favoritesSize].emulatorFolder,configurations[3]);
+		strcpy(favorites[favoritesSize].executable,configurations[4]);
+		favorites[favoritesSize].isConsoleApp = atoi(configurations[5]);
+		strcpy(favorites[favoritesSize].filesDirectory,configurations[6]);
+		favorites[favoritesSize].frequency = atoi(configurations[7]);
+		int len = strlen(favorites[favoritesSize].filesDirectory);
+		if (favorites[favoritesSize].filesDirectory[len-1]=='\n') {
+			favorites[favoritesSize].filesDirectory[len-1]='\0';
 		}
-		// Add to the doubly linked list
-		InsertFavoriteAtTail(newFavorite);
 		favoritesSize++;
 	}
 	fclose(fp);
 	if (line) {
 		free(line);
 	}
-	sortFavorites();
-	// Sorting is now handled by the doubly linked list implementation
+	qsort(favorites, favoritesSize, sizeof(struct Favorite), compareFavorites);
 	logMessage("INFO","loadFavorites","Loaded favorites");
 }
 
@@ -860,10 +804,11 @@ int cmpfnc(const void *f1, const void *f2)
 	return strcmp(temp1, temp2);
 }
 
+
 void loadConfig() {
-	char pathToConfigFilePlusFileName[PATH_BUFFER_SIZE];
+	char pathToConfigFilePlusFileName[1000];
 	const char *value;
-	snprintf(pathToConfigFilePlusFileName,sizeof(pathToConfigFilePlusFileName),"%.*s/.simplemenu/config.ini", MAX_HOME_LIMIT, home);
+	snprintf(pathToConfigFilePlusFileName,sizeof(pathToConfigFilePlusFileName),"%s/.simplemenu/config.ini",home);
 	ini_t *config = ini_load(pathToConfigFilePlusFileName);
 
 	value = ini_get(config, "GENERAL", "media_folder");
@@ -895,12 +840,6 @@ void loadConfig() {
 
 	value = ini_get(config, "SCREEN", "hdmi_height");
 	HDMI_HEIGHT=atoifgl(value);
-
-	value = ini_get(config, "SCREEN", "screen_width");
-	SCREEN_WIDTH=atoifgl(value);
-
-	value = ini_get(config, "SCREEN", "screen_height");
-	SCREEN_HEIGHT=atoifgl(value);
 
 	value = ini_get(config, "CONTROLS", "A");
 	if (value) {
@@ -981,20 +920,7 @@ void loadConfig() {
 	logMessage("INFO","loadConfig","Config loaded");
 }
 
-void ht_destroy(hashtable_t *hashtable);
-
-void freeSectionGroups() {
-	for (int i = 0; i < sectionGroupCounter; i++) {
-		if (sectionGroups[i].groupBackgroundSurface != NULL) {
-			SDL_FreeSurface(sectionGroups[i].groupBackgroundSurface);
-			sectionGroups[i].groupBackgroundSurface = NULL;
-		}
-	}
-	sectionGroupCounter = 0;
-}
-
 void loadSectionGroups() {
-	freeSectionGroups();
 	ini_t *themeConfig = ini_load(pathToThemeConfigFilePlusFileName);
 	sectionGroupCounter=0;
 	char *files[1000];
@@ -1004,7 +930,7 @@ void loadSectionGroups() {
 
 	snprintf(tempString,sizeof(tempString),"%s/.simplemenu/section_groups/",getenv("HOME"));
 
-	int n = recursivelyScanDirectory(tempString, files, 0, 1000);
+	int n = recursivelyScanDirectory(tempString, files, 0);
 
 	for(int i=0;i<n;i++) {
 		if(strstr(files[i],".png")!=NULL) {
@@ -1060,41 +986,7 @@ void loadSectionGroups() {
 	logMessage("INFO","loadSectionGroups","Loaded section groups");
 }
 
-void freeSections() {
-	for (int i = 0; i < menuSectionCounter; i++) {
-		if (menuSections[i].systemLogoSurface != NULL) {
-			SDL_FreeSurface(menuSections[i].systemLogoSurface);
-			menuSections[i].systemLogoSurface = NULL;
-		}
-		if (menuSections[i].systemPictureSurface != NULL) {
-			SDL_FreeSurface(menuSections[i].systemPictureSurface);
-			menuSections[i].systemPictureSurface = NULL;
-		}
-		if (menuSections[i].backgroundSurface != NULL) {
-			SDL_FreeSurface(menuSections[i].backgroundSurface);
-			menuSections[i].backgroundSurface = NULL;
-		}
-		for (int j = 0; j < 10; j++) {
-			if (menuSections[i].executables[j] != NULL) {
-				free(menuSections[i].executables[j]);
-				menuSections[i].executables[j] = NULL;
-			}
-			if (menuSections[i].emulatorDirectories[j] != NULL) {
-				free(menuSections[i].emulatorDirectories[j]);
-				menuSections[i].emulatorDirectories[j] = NULL;
-			}
-		}
-		if (menuSections[i].aliasHashTable != NULL) {
-			ht_destroy(menuSections[i].aliasHashTable);
-			menuSections[i].aliasHashTable = NULL;
-		}
-		cleanListForSection(&menuSections[i]);
-	}
-	menuSectionCounter = 0;
-}
-
 int loadSections(char *file) {
-	freeSections();
 	menuSectionCounter=0;
 	char pathToSectionsFilePlusFileName[1000];
 	snprintf(pathToSectionsFilePlusFileName,sizeof(pathToSectionsFilePlusFileName),"%s",file);
@@ -1118,6 +1010,7 @@ int loadSections(char *file) {
 		}
 		tokenizedSectionName=strtok(NULL,",");
 	}
+	free(tokenizedSectionName);
 	free(consoles1);
 	while(menuSectionCounter<sectionCounter) {
 		char *sectionName = sectionNames[menuSectionCounter];
@@ -1131,7 +1024,7 @@ int loadSections(char *file) {
 		strcpy(value2,value);
 		char* currentExec = strtok(value2,",");
 		while(currentExec!=NULL) {
-			#ifndef PC
+			#ifndef TARGET_PC
 			char *tempNameWithoutPath = getNameWithoutPath(currentExec);
 			char *tempPathWithoutName = getRomPath(currentExec);
 			#else
@@ -1163,7 +1056,7 @@ int loadSections(char *file) {
 		logMessage("INFO","loadSections","Executable set");
 		setStringValueInSection (config, sectionName, "romDirs", menuSections[menuSectionCounter].filesDirectories,"\0");
 		setStringValueInSection (config, sectionName, "romExts", menuSections[menuSectionCounter].fileExtensions,"\0");
-		#ifdef RETROFW
+		#ifdef TARGET_RFW
 		setStringValueInSection (config, sectionName, "scaling", menuSections[menuSectionCounter].scaling,"3");
 		#else
 		setStringValueInSection (config, sectionName, "scaling", menuSections[menuSectionCounter].scaling,"0");
@@ -1480,8 +1373,8 @@ int countSections(char *file) {
 
 void saveLastState() {
 	FILE * fp;
-	char pathToStatesFilePlusFileName[PATH_BUFFER_SIZE];
-	snprintf(pathToStatesFilePlusFileName,sizeof(pathToStatesFilePlusFileName),"%.*s/.simplemenu/last_state.sav", MAX_HOME_LIMIT, home);
+	char pathToStatesFilePlusFileName[300];
+	snprintf(pathToStatesFilePlusFileName,sizeof(pathToStatesFilePlusFileName),"%s/.simplemenu/last_state.sav",home);
 	fp = fopen(pathToStatesFilePlusFileName, "w");
 	fprintf(fp, "%d;\n", 10);
 	fprintf(fp, "%d;\n", stripGames);
@@ -1515,8 +1408,8 @@ void loadLastState() {
 	char * line = NULL;
 	size_t len = 0;
 	ssize_t read;
-	char pathToStatesFilePlusFileName[PATH_BUFFER_SIZE];
-	snprintf(pathToStatesFilePlusFileName,sizeof(pathToStatesFilePlusFileName),"%.*s/.simplemenu/last_state.sav", MAX_HOME_LIMIT, home);
+	char pathToStatesFilePlusFileName[300];
+	snprintf(pathToStatesFilePlusFileName,sizeof(pathToStatesFilePlusFileName),"%s/.simplemenu/last_state.sav",home);
 
 	fp = fopen(pathToStatesFilePlusFileName, "r");
 	if (fp==NULL) {

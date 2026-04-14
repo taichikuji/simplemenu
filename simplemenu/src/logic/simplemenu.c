@@ -74,7 +74,7 @@ void initialSetup() {
 	sigaction(SIGABRT, &sa, NULL);
 	sigaction(SIGINT, &sa, NULL);
 	signal(SIGTERM, &sig_term_handler);
-	#if defined RG350
+	#if defined(TARGET_NPG) || defined(TARGET_OD) || defined TARGET_OD_BETA
 	resetFrameBuffer();
 	#endif
 	createConfigFilesInHomeIfTheyDontExist();
@@ -88,7 +88,7 @@ void initialSetup() {
 	loadLastState();
 	HW_Init();
 	currentCPU = OC_NO;
-#ifndef RG350
+#ifndef TARGET_OD_BETA
 	logMessage("INFO","initialSetup","Setting CPU to base");
 	setCPU(currentCPU);
 #endif
@@ -116,15 +116,12 @@ void initialSetup2() {
 	} else {
 		ITEMS_PER_PAGE=FULLSCREEN_ITEMS_PER_PAGE;
 	}
-	#if defined(MIYOO) || defined(RETROFW) || defined(RG350)
+	#if defined(TARGET_BITTBOY) || defined(TARGET_RFW) || defined(TARGET_OD) || defined(TARGET_OD_BETA) || defined(TARGET_NPG)
 	initSuspendTimer();
 	#endif
 	determineStartingScreen(sectionCount);
-	logMessage("INFO","initialSetup2","MY NEW MESSAGE");
 	enableKeyRepeat();
-	logMessage("INFO","initialSetup2","MY NEW MESSAGE2");
 	lastChargeLevel=getBatteryLevel();
-	logMessage("INFO","initialSetup2","MY NEW MESSAGE3");
 }
 
 void processEvents() {
@@ -212,7 +209,7 @@ void processEvents() {
 			}
 			previousState = currentState;
 		}
-//#if defined (MIYOO)
+//#if defined (TARGET_BITTBOY)
 //		else if (event.type==getKeyUp()&&currentState==SELECTING_SECTION) {
 //			if(aKeyComboWasPressed==1&&((int)event.key.keysym.sym)==BTN_B) {
 //				hotKeyPressed=0;
@@ -240,41 +237,6 @@ void processEvents() {
 	}
 }
 
-void freeRom(struct Rom *rom) {
-	if (rom == NULL) {
-		return;
-	}
-	if (rom->name != NULL) {
-		free(rom->name);
-	}
-	if (rom->alias != NULL) {
-		// As with cleanListForSection, avoid literal "\0"
-		if (rom->alias[0] != '\0') {
-			free(rom->alias);
-		}
-	}
-	if (rom->directory != NULL) {
-		free(rom->directory);
-	}
-	free(rom);
-}
-
-void freeAutostartRom(struct AutostartRom *autostartRom) {
-	if (autostartRom == NULL) {
-		return;
-	}
-	if (autostartRom->rom != NULL) {
-		freeRom(autostartRom->rom);
-	}
-	if (autostartRom->emulator != NULL) {
-		free(autostartRom->emulator);
-	}
-	if (autostartRom->emulatorDir != NULL) {
-		free(autostartRom->emulatorDir);
-	}
-	free(autostartRom);
-}
-
 int main() {
 	logMessage("INFO","main","Setup 1");
 	initialSetup();
@@ -290,14 +252,13 @@ int main() {
 			logMessage("INFO","main","Launching at boot");
 			launchAutoStartGame(launchAtBootGame->rom, launchAtBootGame->emulatorDir, launchAtBootGame->emulator);
 		}
-		freeAutostartRom(launchAtBootGame);
 	} else {
 		currentState=BROWSING_GAME_LIST;
 		pushEvent();
 	}
 	const int GAME_FPS=60;
 	const int FRAME_DURATION_IN_MILLISECONDS = 1000/GAME_FPS;
-	Uint32 start_time;	
+	Uint32 start_time;
 	updateScreen(CURRENT_SECTION.currentGameNode);
 	refreshScreen();
 	startBatteryTimer();
