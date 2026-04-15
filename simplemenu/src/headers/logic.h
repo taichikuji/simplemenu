@@ -3,7 +3,7 @@
 #define LOGIC
 void generateError(char *pErrorMessage, int pThereIsACriticalError);
 void quit();
-#ifndef TARGET_PC
+#ifndef PC
 void executeCommand (char *emulatorFolder, char *executable, char *fileToBeExecutedWithFullPath, int isConsoleApp);
 #else
 void executeCommandPC (char *executable, char *fileToBeExecutedWithFullPath);
@@ -26,7 +26,7 @@ char *getRomRealName(char *nameWithoutExtension);
 char *getAlias(char *romName);
 char *getFileNameOrAlias(struct Rom *rom);
 int theSectionHasGames(struct MenuSection *section);
-int recursivelyScanDirectory (char *directory, char* files[], int i);
+int recursivelyScanDirectory (char *directory, char* files[], int i, int maxFiles);
 int scanDirectory(char *directory, char* files[], int i);
 int findDirectoriesInDirectory (char *directory, char* files[], int i);
 int is43();
