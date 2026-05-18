@@ -3,3 +3,5 @@
 simplemenu/simplemenu-portable/
 *.o
 purge.sh
+
+main
